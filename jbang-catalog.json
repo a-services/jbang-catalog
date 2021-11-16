@@ -1,0 +1,7 @@
+{
+  "aliases": {
+    "csv": {
+      "script-ref": "csv_from_db.java",
+      "description": "Export CSV file from database table"
+    }
+}
