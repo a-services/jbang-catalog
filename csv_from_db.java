@@ -25,7 +25,8 @@ import org.json.JSONObject;
 /**
  * Export CSV file from database table.
  */
-@Command(name = "csv_from_db", mixinStandardHelpOptions = true, version = "1.0", description = "Export CSV file from database table.")
+@Command(name = "csv_from_db", mixinStandardHelpOptions = true, version = "1.1",
+         description = "Export CSV or JSON file from database table.")
 public class csv_from_db implements Callable<Integer> {
 
     @Option(names = { "-db", "--database" }, required = true, description = "Database name")
