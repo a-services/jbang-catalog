@@ -1,5 +1,9 @@
 {
   "aliases": {
+    "grep": {
+      "script-ref": "find_grep.java",
+      "description": "Find substring like grep"
+    },
     "csv": {
       "script-ref": "csv_from_db.java",
       "description": "Export CSV file from database table"
