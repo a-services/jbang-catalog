@@ -7,6 +7,10 @@
     "csv": {
       "script-ref": "csv_from_db.java",
       "description": "Export CSV file from database table"
+    },
+    "images2pdf": {
+      "script-ref": "images2pdf.java",
+      "description": "Create PDF from images"
     }
   }
 }
