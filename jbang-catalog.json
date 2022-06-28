@@ -1,4 +1,5 @@
 {
+  "catalogs": {},
   "aliases": {
     "grep": {
       "script-ref": "find_grep.java",
@@ -14,7 +15,7 @@
     },
     "strapdownjs": {
       "script-ref": "strapdownjs.java",
-      "description": "Create HTML from markdown using strapdownjs"
-    }
-  }
+      "description": "Create HTML from markdown using strapdownjs"    }
+  },
+  "templates": {}
 }
