@@ -11,6 +11,10 @@
     "images2pdf": {
       "script-ref": "images2pdf.java",
       "description": "Create PDF from images"
+    },
+    "strapdownjs": {
+      "script-ref": "strapdownjs.java",
+      "description": "Create HTML from markdown using strapdownjs"
     }
   }
 }
