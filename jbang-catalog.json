@@ -15,7 +15,12 @@
     },
     "strapdownjs": {
       "script-ref": "strapdownjs.java",
-      "description": "Create HTML from markdown using strapdownjs"    }
+      "description": "Create HTML from markdown using strapdownjs"    
+    },
+    "find_cordova": {
+      "script-ref": "find_cordova.java",
+      "description": "Search Cordova 8.x docs"    
+    }
   },
   "templates": {}
 }
