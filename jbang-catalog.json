@@ -17,6 +17,10 @@
       "script-ref": "strapdownjs.java",
       "description": "Create HTML from markdown using strapdownjs"    
     },
+    "folder_sizes": {
+      "script-ref": "folder_sizes.java",
+      "description": "Read and write CSV with folder sizes"    
+	  },
     "find_cordova": {
       "script-ref": "find_cordova.java",
       "description": "Search Cordova 8.x docs"    
