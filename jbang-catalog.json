@@ -24,6 +24,10 @@
     "find_cordova": {
       "script-ref": "find_cordova.java",
       "description": "Search Cordova 8.x docs"    
+    },
+    "paste_log": {
+      "script-ref": "paste_log.java",
+      "description": "Paste log from clipboard to file"    
     }
   },
   "templates": {}

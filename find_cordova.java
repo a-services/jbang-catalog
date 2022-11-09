@@ -72,22 +72,23 @@ class find_cordova implements Callable<Integer> {
                 if (p.endsWith(".md")) {
                     p = p.substring(0, p.length() - ".md".length()) + ".html";
                 }
-                listItems.add(String.format("<li><a href=\"https://cordova.apache.org/docs/en/%s\">%s</a></li>", p, p));
+                listItems.add(String.format("<li><a target=\"_blank\" href=\"https://cordova.apache.org/docs/en/%s\">%s</a></li>", p, p));
             }
 
+            String title = "Searching Cordova docs";
             w.write("""
                 <!doctype html>
                 <html lang="en">
                 
                 <head>
-                   <title>Bootstrap Container</title>
+                   <title>%s</title>
                    <meta charset="utf-8">
                    <meta name="viewport" content="width=device-width, initial-scale=1">
                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
                 </head>
                 
                 <body class="p-4">
-                    <h2>Searching Cordova docs</h2>
+                    <h2>%s</h2>
                     <p class="lead">%s</p>
                     <ol>
                     %s
@@ -96,7 +97,7 @@ class find_cordova implements Callable<Integer> {
                 </body>
                 
                 </html>
-                """.formatted(pattern, listItems));
+                """.formatted(title, title, pattern, listItems));
     
                 out.println("File created: " + outputName);                        
 
