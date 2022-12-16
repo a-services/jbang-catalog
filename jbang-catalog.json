@@ -28,6 +28,10 @@
     "paste_log": {
       "script-ref": "paste_log.java",
       "description": "Paste log from clipboard to file"    
+    },
+    "ts_imports": {
+      "script-ref": "ts_imports.java",
+      "description": "Find list of TypeScript imports in folder"    
     }
   },
   "templates": {}
