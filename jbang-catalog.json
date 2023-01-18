@@ -32,6 +32,10 @@
     "ts_imports": {
       "script-ref": "ts_imports.java",
       "description": "Find list of TypeScript imports in folder"    
+    },
+    "exc": {
+      "script-ref": "exc.java",
+      "description": "Checking for exceptions in log file"    
     }
   },
   "templates": {}

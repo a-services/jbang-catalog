@@ -17,7 +17,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-@Command(name = "paste_log", mixinStandardHelpOptions = true, version = "1.0", description = "Paste log from clipboard to file")
+// https://github.com/a-services/jbang-catalog/blob/main/paste_log.java
+
+@Command(name = "paste_log", mixinStandardHelpOptions = true, version = "20-11-09", 
+         description = "Paste log from clipboard to file")
 class paste_log implements Callable<Integer> {
 
     @Override
