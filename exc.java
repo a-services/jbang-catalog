@@ -1,25 +1,32 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS info.picocli:picocli:4.7.0
+//DEPS org.yaml:snakeyaml:1.33
 
 import static java.lang.System.out;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
+
+import org.yaml.snakeyaml.Yaml;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -27,7 +34,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 
-@Command(name = "exc", mixinStandardHelpOptions = true, version = "2023-01-17", 
+@Command(name = "exc", mixinStandardHelpOptions = true, version = "2023-01-18", 
          description = "Checking for exceptions in log file")
 class exc implements Callable<Integer> {
 
@@ -41,6 +48,8 @@ class exc implements Callable<Integer> {
     @Option(names = { "-f", "--file" }, description = "Output YAML file.")
     boolean outputYaml;
 
+    @Option(names = { "-h", "--html" }, description = "Output HTML file.")
+    boolean outputHtml;
 
     List<Exc> exceptions;
 
@@ -66,6 +75,10 @@ class exc implements Callable<Integer> {
                 printExceptions(f);
                 out.println("File created: " + outName);
             }
+            if (outputHtml) {
+                new YmlTable(outName);
+            }
+            
         } else {
             printExceptions(out);
         }
@@ -93,9 +106,10 @@ class exc implements Callable<Integer> {
 
         Collections.sort(exceptions, new Comparator<Exc>() {
             public int compare(Exc e1, Exc e2) {
-                Date t1 = tse.parse(e1.time);
-                Date t2 = tse.parse(e2.time);
-                return -t1.compareTo(t2);
+                //Date t1 = tse.parse(e1.time);
+                //Date t2 = tse.parse(e2.time);
+                //return -t1.compareTo(t2);
+                return Integer.compare(e2.lno, e1.lno);
             }
         });
     }
@@ -306,5 +320,93 @@ class exc implements Callable<Integer> {
         }
 
     }
+
+    class YmlTable {
+    
+        // SnakeYAML: 
+        //   Docs:      https://bitbucket.org/snakeyaml/snakeyaml/wiki/Documentation
+        //   GitHub:    https://github.com/snakeyaml/snakeyaml
+        //   Tutorial:  https://www.baeldung.com/java-snake-yaml
+    
+        Yaml yaml = new Yaml();
+        
+        List<Map<String, Object>> list;    
+        ArrayList<String> keys;
+    
+        YmlTable(String inputYaml) throws Exception {
+            Path yamlPath = Path.of(inputYaml);
+            list = yaml.load(Files.newInputStream(yamlPath));
+            //System.out.println("List: " + list);
+            assert list.size() < 0;
+            createOutputHtml(inputYaml + ".html", list);
+        }
+    
+        void createOutputHtml(String outFile, List<Map<String, Object>> list) throws FileNotFoundException {
+            Map<String, Object> map = list.get(0);
+            keys = new ArrayList<>(map.keySet());
+    
+            PrintWriter f = new PrintWriter(new FileOutputStream(outFile));
+            String bootstrapCDN = "https://cdn.jsdelivr.net/npm/bootstrap@5.2.3";
+            f.printf("""
+                <!doctype html>
+                <html lang="en">
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1">
+                  <title>YAML</title>
+                  <link href="%s/dist/css/bootstrap.min.css" rel="stylesheet">
+                </head>
+                <body>
+                  <div class="container">
+                  %s
+                  </div>
+                  <script src="%s/dist/js/bootstrap.bundle.min.js"></script>
+                </body>
+                </html>
+                """, 
+                bootstrapCDN, createContents(), bootstrapCDN);
+            f.close();
+            out.println("File created: " + outFile);
+        }
+    
+        String createContents() {
+            return String.format("""
+                <table class="table">
+                <thead>
+                  <tr>
+                    %s
+                  </tr>
+                </thead>            
+                <tbody>
+                  %s
+                </tbody>
+                </table>
+                """,
+                createTableHeader(),
+                createTableBody());
+        }
+    
+        String createTableHeader() {
+            StringBuilder sb = new StringBuilder();
+            for (String key: keys) {
+                sb.append("<th scope=\"col\">" + key + "</th>\n");
+            }
+            return sb.toString();        
+        }
+    
+        String createTableBody() {
+            StringBuilder sb = new StringBuilder();
+            for (Map<String, Object> em: list) {
+                sb.append("<tr>\n");
+                for (String key: keys) {
+                    sb.append("<td>" + em.get(key) + "</td>\n");
+                }
+                sb.append("</tr>\n");
+            }
+            return sb.toString();      
+        }
+    
+    }
+    
 
 }
