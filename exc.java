@@ -76,7 +76,7 @@ class exc implements Callable<Integer> {
                 out.println("File created: " + outName);
             }
             if (outputHtml) {
-                new YmlTable(outName);
+                new YmlTable(logFile);
             }
             
         } else {
@@ -233,7 +233,7 @@ class exc implements Callable<Integer> {
             sb.append(indent + "lno: " + lno + "\n");
             sb.append(indent + "time: " + time + "\n");
             sb.append(indent + "sig: " + sig + "\n");
-            sb.append(indent + "cmt: " + cmt + "\n");
+            sb.append(indent + "cmt: " + (cmt == null ? "" : cmt) + "\n");
             return sb.toString();
         }
 
@@ -259,9 +259,14 @@ class exc implements Callable<Integer> {
                 String tstamp = tse.extractTimestamp(line);
                 if (tstamp != null) {
                     if (lastTime == null) {
-                        exceptions.add(createExc("Start time", tstamp, null));
+                        exceptions.add(createExc("START OF LOG", tstamp, null));
                     }
                     lastTime = tstamp;
+
+                    if (line.contains("  :: Spring Boot ::  ")) {
+                        // Содержание `sig` не должно нарушать правил YAML
+                        exceptions.add(createExc("SPRING BOOT RESTART", tstamp, null));
+                    }
                 }
 
                 String comment = tse.extractComment(line);
@@ -276,7 +281,7 @@ class exc implements Callable<Integer> {
                 }
             }
             if (lastTime != null) {
-                exceptions.add(createExc("End time", lastTime, null));
+                exceptions.add(createExc("END OF LOG", lastTime, null));
             }
             in.close();
             return exceptions;
@@ -333,12 +338,12 @@ class exc implements Callable<Integer> {
         List<Map<String, Object>> list;    
         ArrayList<String> keys;
     
-        YmlTable(String inputYaml) throws Exception {
-            Path yamlPath = Path.of(inputYaml);
+        YmlTable(String logFile) throws Exception {
+            Path yamlPath = Path.of(logFile + ".yml");
             list = yaml.load(Files.newInputStream(yamlPath));
             //System.out.println("List: " + list);
             assert list.size() < 0;
-            createOutputHtml(inputYaml + ".html", list);
+            createOutputHtml(logFile + ".html", list);
         }
     
         void createOutputHtml(String outFile, List<Map<String, Object>> list) throws FileNotFoundException {
@@ -353,7 +358,6 @@ class exc implements Callable<Integer> {
                 <head>
                   <meta charset="utf-8">
                   <meta name="viewport" content="width=device-width, initial-scale=1">
-                  <title>YAML</title>
                   <link href="%s/dist/css/bootstrap.min.css" rel="stylesheet">
                 </head>
                 <body>
@@ -399,7 +403,8 @@ class exc implements Callable<Integer> {
             for (Map<String, Object> em: list) {
                 sb.append("<tr>\n");
                 for (String key: keys) {
-                    sb.append("<td>" + em.get(key) + "</td>\n");
+                    Object value = em.get(key);
+                    sb.append("<td>" + (value == null? "": value) + "</td>\n");
                 }
                 sb.append("</tr>\n");
             }
