@@ -1,3 +1,15 @@
 = jbang-catalog
 
-Catalog of jbang scripts
+.Catalog of jbang scripts
+|===
+| `find_grep.java` |  Find substring like grep
+| `csv_from_db.java` |  Export CSV file from database table
+| `images2pdf.java` |  Create PDF from images
+| `strapdownjs.java` |  Create HTML from markdown using strapdownjs
+| `folder_sizes.java` |  Read and write CSV with folder sizes
+| `find_cordova.java` |  Search Cordova 8.x docs
+| `paste_log.java` |  Paste log from clipboard to file
+| `ts_imports.java` |  Find list of TypeScript imports in folder
+| `exc.java` |  Checking for exceptions in log file
+| `yml_table.java` |  Convert YAML list to HTML
+|===

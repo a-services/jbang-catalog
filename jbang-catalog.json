@@ -37,7 +37,7 @@
       "script-ref": "exc.java",
       "description": "Checking for exceptions in log file"    
     },
-    "exc": {
+    "yml_table": {
       "script-ref": "yml_table.java",
       "description": "Convert YAML list to HTML"    
     }    
