@@ -1,7 +1,7 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS info.picocli:picocli:4.7.0
 //DEPS org.yaml:snakeyaml:1.33
-
+//JAVA17+
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -23,7 +23,7 @@ import java.util.Map;
 import org.yaml.snakeyaml.Yaml;
 
 
-@Command(name = "yml_table", mixinStandardHelpOptions = true, version = "2023-01-18",
+@Command(name = "yml_table", mixinStandardHelpOptions = true, version = "2023-02-12",
         description = "Convert YAML list to HTML")
 class yml_table implements Callable<Integer> {
 
@@ -113,7 +113,11 @@ class yml_table implements Callable<Integer> {
         for (Map<String, Object> em: list) {
             sb.append("<tr>\n");
             for (String key: keys) {
-                sb.append("<td>" + em.get(key) + "</td>\n");
+                String value = (String) em.get(key);
+                if (value == null) {
+                    value = "";
+                }
+                sb.append("<td>" + value + "</td>\n");
             }
             sb.append("</tr>\n");
         }
