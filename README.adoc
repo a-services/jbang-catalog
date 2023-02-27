@@ -12,4 +12,5 @@
 | `ts_imports.java` |  Find list of TypeScript imports in folder
 | `exc.java` |  Checking for exceptions in log file
 | `yml_table.java` |  Convert YAML list to HTML
+| `calibre_page.java` |  Extract page from HTML created by Calibre
 |===

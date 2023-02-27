@@ -40,6 +40,10 @@
     "yml_table": {
       "script-ref": "yml_table.java",
       "description": "Convert YAML list to HTML"    
+    },    
+    "calibre_page": {
+      "script-ref": "calibre_page.java",
+      "description": "Extract page from HTML created by Calibre"    
     }    
   },
   "templates": {}
