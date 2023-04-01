@@ -16,8 +16,12 @@ def cat = new JsonSlurper().parseText(new File(inputFile).text)
 f.println("|===");
 for (a: cat.aliases) {
 	def c = a.value
-    f.println("| `${c['script-ref']}` |  ${c.description}");
+    f.println("| ${pad(c['script-ref'], 20)} |  ${c.description}");
 }
 f.println("|===");
 
 f.close();
+
+String pad(String s, int length) {
+	return ("`" + s + "`").padRight(length + 2)
+}

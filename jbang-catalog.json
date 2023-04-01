@@ -44,7 +44,11 @@
     "calibre_page": {
       "script-ref": "calibre_page.java",
       "description": "Extract page from HTML created by Calibre"    
-    }    
+    },
+    "fix_chapters": {
+      "script-ref": "fix_chapters.java",
+      "description": "Fix numbers in markdown chapters"
+    }
   },
   "templates": {}
 }
