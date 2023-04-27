@@ -36,12 +36,6 @@ import org.apache.commons.csv.CSVRecord;
         "@|cyan |  |   |     ||     ||     ||     ||  .  \\ \\    | |  | |     ||     |\\    ||@",
         "@|cyan |__|    \\___/ |_____||_____||_____||__|\\_|  \\___||____||_____||_____| \\___||@",
         "@|cyan                                                                            |@",
-        // "Example of input CSV file:",
-        // "",
-        // " astudio, 95.1 M",
-        // " m3, 298.3 K",
-        // "",
-        // "Only M and K suffixes allowed in folder sizes",
         ""
 }, name = "folder_sizes", mixinStandardHelpOptions = true, version = "2023-04-27", 
    description = "Calculate folder sizes.")
@@ -58,9 +52,9 @@ public class folder_sizes implements Callable<Integer> {
 
     static final String csvName = "folder_sizes.csv";
 
-    static final int maxDepth = 5;
+    static final int maxDepth = 10;
 
-    static final List<String> gapFolders = Arrays.asList(new String[] { "node_modules", ".git" });
+    static final List<String> gapFolders = Arrays.asList(new String[] { "node_modules", ".git", ".angular" });
 
     // Walking the File Tree
     // https://docs.oracle.com/javase/tutorial/essential/io/walk.html
