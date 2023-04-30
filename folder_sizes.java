@@ -37,7 +37,7 @@ import org.apache.commons.csv.CSVRecord;
         "@|cyan |__|    \\___/ |_____||_____||_____||__|\\_|  \\___||____||_____||_____| \\___||@",
         "@|cyan                                                                            |@",
         ""
-}, name = "folder_sizes", mixinStandardHelpOptions = true, version = "2023-04-27", 
+}, name = "folder_sizes", mixinStandardHelpOptions = true, version = "2023-04-30", 
    description = "Calculate folder sizes.")
 public class folder_sizes implements Callable<Integer> {
 
@@ -47,14 +47,20 @@ public class folder_sizes implements Callable<Integer> {
     @Option(names = {"-t", "--track-csv"}, description = "Track CSV files.")
     boolean trackCsvFiles;
 
-    @Option(names = {"-i", "--ignore-csv"}, description = "Ignore CSV files.")
+    @Option(names = {"-ic", "--ignore-csv"}, description = "Ignore CSV files.")
     boolean ignoreCsvFiles;
+
+    @Option(names = {"-ig", "--ignore-gaps"}, description = "Ignore gap folders.")
+    boolean ignoreGapFolders;
+
+    @Option(names = {"-m", "--more-gaps"}, description = "More gap folders.")
+    boolean moreGapFolders;
 
     static final String csvName = "folder_sizes.csv";
 
     static final int maxDepth = 10;
 
-    static final List<String> gapFolders = Arrays.asList(new String[] { "node_modules", ".git", ".angular" });
+    static final List<String> gapFolders = Arrays.asList(new String[] { "node_modules" });
 
     // Walking the File Tree
     // https://docs.oracle.com/javase/tutorial/essential/io/walk.html
@@ -79,6 +85,10 @@ public class folder_sizes implements Callable<Integer> {
         if (!Files.isDirectory(inputFolder)) {
             out.println("[ERROR] Folder expected: " + inputFolder);
             return 1;
+        }
+        if (moreGapFolders) {
+        	gapFolders.add(".git");
+        	gapFolders.add(".angular");
         }
 
         int startNameCount = inputFolder.getNameCount();
@@ -123,7 +133,7 @@ public class folder_sizes implements Callable<Integer> {
                     return FileVisitResult.TERMINATE;
                 }
 
-                if (gapFolders.contains(dir.getFileName().toString())) {
+                if (!ignoreGapFolders && gapFolders.contains(dir.getFileName().toString())) {
                     terminator = "Gap folder: " + dir;
                     return FileVisitResult.TERMINATE;
                 } else {
