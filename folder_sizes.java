@@ -19,6 +19,7 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Option;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ import org.apache.commons.csv.CSVRecord;
         "@|cyan |__|    \\___/ |_____||_____||_____||__|\\_|  \\___||____||_____||_____| \\___||@",
         "@|cyan                                                                            |@",
         ""
-}, name = "folder_sizes", mixinStandardHelpOptions = true, version = "2023-04-30", 
+}, name = "folder_sizes", mixinStandardHelpOptions = true, version = "2023-05-01", 
    description = "Calculate folder sizes.")
 public class folder_sizes implements Callable<Integer> {
 
@@ -60,7 +61,7 @@ public class folder_sizes implements Callable<Integer> {
 
     static final int maxDepth = 10;
 
-    static final List<String> gapFolders = Arrays.asList(new String[] { "node_modules" });
+    List<String> gapFolders = Arrays.asList(new String[] { "node_modules" });
 
     // Walking the File Tree
     // https://docs.oracle.com/javase/tutorial/essential/io/walk.html
@@ -87,6 +88,7 @@ public class folder_sizes implements Callable<Integer> {
             return 1;
         }
         if (moreGapFolders) {
+            gapFolders = new ArrayList<>(gapFolders);
         	gapFolders.add(".git");
         	gapFolders.add(".angular");
         }
