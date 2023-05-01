@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import javax.swing.JOptionPane;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
@@ -56,6 +58,9 @@ public class folder_sizes implements Callable<Integer> {
 
     @Option(names = {"-m", "--more-gaps"}, description = "More gap folders.")
     boolean moreGapFolders;
+    
+    @Option(names = {"-d", "--delete-gaps"}, description = "Delete gap folders.")
+    boolean deleteGapFolders;
 
     static final String csvName = "folder_sizes.csv";
 
@@ -75,7 +80,9 @@ public class folder_sizes implements Callable<Integer> {
 
     long total;
     long topSize;
+
     String terminator;
+    boolean deleteAlways = false;
 
     @Override
     public Integer call() throws Exception {
@@ -137,7 +144,24 @@ public class folder_sizes implements Callable<Integer> {
 
                 if (!ignoreGapFolders && gapFolders.contains(dir.getFileName().toString())) {
                     terminator = "Gap folder: " + dir;
-                    return FileVisitResult.TERMINATE;
+                    if (deleteGapFolders) {
+                        int result = 0;
+                        if (!deleteAlways) {
+                            result = askToDelete(dir);
+                        } 
+                        switch (result) {
+                            case 0: // delete this
+                            case 1: // delete always
+                                deleteAlways = (result == 1);
+                                deleteFolder(dir);
+                                return FileVisitResult.SKIP_SUBTREE;
+                            default: // cancel
+                                return FileVisitResult.TERMINATE;
+                        }
+                    } else {
+                        return FileVisitResult.TERMINATE;
+                    }
+                    
                 } else {
                     return FileVisitResult.CONTINUE;
                 }
@@ -180,6 +204,37 @@ public class folder_sizes implements Callable<Integer> {
         out.println("Folder: " + inputFolder);
         out.format("  Size: %d B = %.1f KB = %.1f MB %n", total, kb(total), mb(total));
         return 0;
+    }
+
+    void deleteFolder(Path dir) throws IOException {
+        out.println("Delete folder: " + dir);
+        deletePath(dir);
+        terminator = null;
+    }
+
+    void deletePath(Path dir) throws IOException {
+        if (Files.isDirectory(dir)) {
+            Path[] paths = Files.list(dir).toArray(Path[]::new);
+            for (Path path : paths) {
+                deletePath(path);
+            }
+        }
+        Files.delete(dir);
+    }
+
+    int askToDelete(Path dir) {
+        Object[] options = {
+                "Delete",
+                "Delete All",
+                "Cancel" };
+        return JOptionPane.showOptionDialog(null,
+                "Gap folder: " + dir,
+                "Confirm Delete",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]);
     }
 
     static float kb(long b) {
@@ -246,7 +301,9 @@ public class folder_sizes implements Callable<Integer> {
         }
     }
 
-    public static void main(String... args) {
+    public static void main(String... args) throws IOException {
+        //int exitCode = new folder_sizes().askToDelete(Path.of("./05-sw-caching/sw-caching-01--updated-project/sw-caching-01--updated-project/.git"));
+        //out.println(exitCode);
         int exitCode = new CommandLine(new folder_sizes()).execute(args);
         System.exit(exitCode);
     }
