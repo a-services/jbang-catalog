@@ -98,6 +98,9 @@ public class folder_sizes implements Callable<Integer> {
             gapFolders = new ArrayList<>(gapFolders);
         	gapFolders.add(".git");
         	gapFolders.add(".angular");
+            gapFolders.add(".gradle");
+            gapFolders.add("bin");
+            gapFolders.add("build");
         }
 
         int startNameCount = inputFolder.getNameCount();
