@@ -9,6 +9,7 @@ import picocli.CommandLine.Option;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.NoSuchFileException;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
@@ -42,7 +43,12 @@ class fix_chapters implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception { 
-        text = Files.readAllLines(Path.of(fileName));
+        try {
+            text = Files.readAllLines(Path.of(fileName));
+        } catch(NoSuchFileException e) {
+            out.println("[ERROR] File not found: " + fileName);
+            return 1;
+        }
 
         fixChapters();
 
