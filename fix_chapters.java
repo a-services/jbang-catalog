@@ -30,8 +30,8 @@ class fix_chapters implements Callable<Integer> {
     @Parameters(index = "1", description = "Start number", defaultValue="1")
     private int startNumber;
 
-    @Option(names = {"-o", "--out"}, description = "Send output to fix_chapters.out")
-    private boolean outputToFile;
+    @Option(names = {"-o", "--overwrite"}, description = "Overwrite input file")
+    private boolean overwriteInputFile;
 
     @Option(names = {"-s", "--section"}, 
     	    description = "Section can start with any number of characters # = * probably followed by section number")
@@ -47,8 +47,8 @@ class fix_chapters implements Callable<Integer> {
         fixChapters();
 
         if (canUpdate) {
-            if (outputToFile) {
-                saveList("fix_chapters.out", text);
+            if (overwriteInputFile) {
+                saveList(fileName, text);
             } else {
                 for (String ln: text) {
                     out.println(ln);
@@ -91,7 +91,7 @@ class fix_chapters implements Callable<Integer> {
             f.println(ln);
         }
         f.close();
-        out.println("[SUCCESS] File created: " + fname);
+        out.println("[SUCCESS] File updated: " + fname);
     }
 
     public static void main(String... args) {
