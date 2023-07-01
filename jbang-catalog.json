@@ -48,6 +48,10 @@
     "fix_chapters": {
       "script-ref": "fix_chapters.java",
       "description": "Fix numbers in markdown chapters"
+    },
+    "svg_icons": {
+      "script-ref": "svg_icons.java",
+      "description": "Create set of png icons from svg file"
     }
   },
   "templates": {}

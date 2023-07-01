@@ -14,4 +14,5 @@
 | `yml_table.java`       |  Convert YAML list to HTML
 | `calibre_page.java`    |  Extract page from HTML created by Calibre
 | `fix_chapters.java`    |  Fix numbers in markdown chapters
+| `svg_icons.java`       |  Create set of png icons from svg file
 |===
