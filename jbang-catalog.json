@@ -56,6 +56,10 @@
     "har2postman": {
       "script-ref": "har2postman.java",
       "description": "Convert HAR file with HTTP requests exported from Chrome to Postman collection"
+    },
+    "file_index": {
+      "script-ref": "file_index.java",
+      "description": "Generae index of files for current folder"
     }
   },
   "templates": {}

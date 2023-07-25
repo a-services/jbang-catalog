@@ -16,4 +16,5 @@
 | `fix_chapters.java`    |  Fix numbers in markdown chapters
 | `svg_icons.java`       |  Create set of png icons from svg file
 | `har2postman.java`     |  Convert HAR file with HTTP requests exported from Chrome to Postman collection
+| `file_index.java`      |  Generae index of files for current folder
 |===
