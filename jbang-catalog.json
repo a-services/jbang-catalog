@@ -60,6 +60,10 @@
     "file_index": {
       "script-ref": "file_index.java",
       "description": "Generae index of files for current folder"
+    },
+    "p_stats": {
+      "script-ref": "p_stats.java",
+      "description": "Calculate project stats"
     }
   },
   "templates": {}
