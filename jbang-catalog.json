@@ -64,6 +64,10 @@
     "p_stats": {
       "script-ref": "p_stats.java",
       "description": "Calculate project stats"
+    },
+    "extract_html_headers": {
+      "script-ref": "extract_html_headers.java",
+      "description": "Extract header tags from html file as indented text to create table of contents"
     }
   },
   "templates": {}
