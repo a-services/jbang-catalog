@@ -68,6 +68,10 @@
     "extract_html_headers": {
       "script-ref": "extract_html_headers.java",
       "description": "Extract header tags from html file as indented text to create table of contents"
+    },
+    "bookserver": {
+      "script-ref": "bookserver.java",
+      "description": "HTTP server that serves markdown files from folder which name ends with ` Book`"
     }
   },
   "templates": {}
