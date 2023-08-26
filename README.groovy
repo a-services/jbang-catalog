@@ -12,10 +12,16 @@ f.println("= jbang-catalog\n");
 f.println(".Catalog of jbang scripts");
 
 def cat = new JsonSlurper().parseText(new File(inputFile).text)
+def aliases = []
+
+for (a: cat.aliases) {
+	aliases << a.value
+}
+
+aliases = aliases.reverse()
 
 f.println("|===");
-for (a: cat.aliases) {
-	def c = a.value
+for (c: aliases) {
     f.println("| ${pad(c['script-ref'], 20)} |  ${c.description}");
 }
 f.println("|===");

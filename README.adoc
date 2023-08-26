@@ -2,23 +2,23 @@
 
 .Catalog of jbang scripts
 |===
-| `find_grep.java`       |  Find substring like grep
-| `csv_from_db.java`     |  Export CSV file from database table
-| `images2pdf.java`      |  Create PDF from images
-| `strapdownjs.java`     |  Create HTML from markdown using strapdownjs
-| `folder_sizes.java`    |  Read and write CSV with folder sizes
-| `find_cordova.java`    |  Search Cordova 8.x docs
-| `paste_log.java`       |  Paste log from clipboard to file
-| `ts_imports.java`      |  Find list of TypeScript imports in folder
-| `exc.java`             |  Checking for exceptions in log file
-| `yml_table.java`       |  Convert YAML list to HTML
-| `calibre_page.java`    |  Extract page from HTML created by Calibre
-| `fix_chapters.java`    |  Fix numbers in markdown chapters
-| `svg_icons.java`       |  Create set of png icons from svg file
-| `har2postman.java`     |  Convert HAR file with HTTP requests exported from Chrome to Postman collection
-| `file_index.java`      |  Generate index of files for current folder
-| `p_stats.java`         |  Calculate project stats
-| `extract_html_headers.java` |  Extract header tags from html file as indented text to create table of contents
-| `bookserver.java`      |  HTTP server that serves markdown files from folder which name ends with ` Book`
 | `udemy_html_toc.java`  |  Parse html file with Udemy course TOC
+| `bookserver.java`      |  HTTP server that serves markdown files from folder which name ends with ` Book`
+| `extract_html_headers.java` |  Extract header tags from html file as indented text to create table of contents
+| `p_stats.java`         |  Calculate project stats
+| `file_index.java`      |  Generate index of files for current folder
+| `har2postman.java`     |  Convert HAR file with HTTP requests exported from Chrome to Postman collection
+| `svg_icons.java`       |  Create set of png icons from svg file
+| `fix_chapters.java`    |  Fix numbers in markdown chapters
+| `calibre_page.java`    |  Extract page from HTML created by Calibre
+| `yml_table.java`       |  Convert YAML list to HTML
+| `exc.java`             |  Checking for exceptions in log file
+| `ts_imports.java`      |  Find list of TypeScript imports in folder
+| `paste_log.java`       |  Paste log from clipboard to file
+| `find_cordova.java`    |  Search Cordova 8.x docs
+| `folder_sizes.java`    |  Read and write CSV with folder sizes
+| `strapdownjs.java`     |  Create HTML from markdown using strapdownjs
+| `images2pdf.java`      |  Create PDF from images
+| `csv_from_db.java`     |  Export CSV file from database table
+| `find_grep.java`       |  Find substring like grep
 |===
