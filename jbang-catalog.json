@@ -59,7 +59,7 @@
     },
     "file_index": {
       "script-ref": "file_index.java",
-      "description": "Generae index of files for current folder"
+      "description": "Generate index of files for current folder"
     },
     "p_stats": {
       "script-ref": "p_stats.java",
@@ -72,7 +72,11 @@
     "bookserver": {
       "script-ref": "bookserver.java",
       "description": "HTTP server that serves markdown files from folder which name ends with ` Book`"
+    },
+    "udemy_html_toc": {
+      "script-ref": "udemy_html_toc.java",
+      "description": "Parse html file with Udemy course TOC"
     }
-  },
+},
   "templates": {}
 }

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 @Command(name = "file_index", mixinStandardHelpOptions = true, version = "2023-07-25",
-        description = "Generae index of files for current folder")
+        description = "Generate index of files for current folder")
 class file_index implements Callable<Integer> {
 
     @Option(names = {"-n", "--name"}, description = "Folder name")
