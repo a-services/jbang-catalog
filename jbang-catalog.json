@@ -76,6 +76,14 @@
     "udemy_html_toc": {
       "script-ref": "udemy_html_toc.java",
       "description": "Parse html file with Udemy course TOC"
+    },
+    "remove_html": {
+      "script-ref": "remove_html.java",
+      "description": "Remove html tags from markdown file"
+    },
+    "replace_br": {
+      "script-ref": "replace_br.java",
+      "description": "Replace <br> tags with newlines"
     }
 },
   "templates": {}

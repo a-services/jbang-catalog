@@ -2,6 +2,8 @@
 
 .Catalog of jbang scripts
 |===
+| `replace_br.java`      |  Replace <br> tags with newlines
+| `remove_html.java`     |  Remove html tags from markdown file
 | `udemy_html_toc.java`  |  Parse html file with Udemy course TOC
 | `bookserver.java`      |  HTTP server that serves markdown files from folder which name ends with ` Book`
 | `extract_html_headers.java` |  Extract header tags from html file as indented text to create table of contents
