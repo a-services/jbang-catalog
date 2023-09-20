@@ -34,22 +34,22 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 
-@Command(name = "exc", mixinStandardHelpOptions = true, version = "2023-01-18", 
+@Command(name = "exc", mixinStandardHelpOptions = true, version = "2023-09-20", 
          description = "Checking for exceptions in log file")
 class exc implements Callable<Integer> {
 
     @Parameters(index = "0", description = "Log file")
     String logFile;
 
-    @Option(names = { "-ts", "--timestamp" }, description = "Timestamp format.", 
+    @Option(names = { "--tformat" }, description = "Timestamp format.", 
             defaultValue = "yyyy-MM-dd HH:mm:ss,SSS")
     String timeStampFormat;
 
-    @Option(names = { "-f", "--file" }, description = "Output YAML file.")
+    @Option(names = { "--yaml" }, description = "Output YAML file.")
     boolean outputYaml;
 
-    @Option(names = { "-h", "--html" }, description = "Output HTML file.")
-    boolean outputHtml;
+    @Option(names = { "--html" }, description = "Output HTML file.")
+    boolean outputHtml = true;
 
     List<Exc> exceptions;
 
@@ -66,8 +66,13 @@ class exc implements Callable<Integer> {
 
         String logText = Files.readString(logPath);
         extractExceptions(logText);
-        //createOutputFile(logFile + ".html");
+
+        if (outputHtml) {
+            outputYaml = true;            
+        }
+        
         if (outputYaml) {
+            // Create YAML file
             String outName = logFile + ".yml";
             try (
                 PrintStream f = new PrintStream(new FileOutputStream(outName))
@@ -75,14 +80,17 @@ class exc implements Callable<Integer> {
                 printExceptions(f);
                 out.println("File created: " + outName);
             }
-            if (outputHtml) {
-                new YmlTable(logFile);
-            }
             
         } else {
+            // Send YAML to console
             printExceptions(out);
         }
-
+        
+        if (outputHtml) {
+            // Create HTML from YAML file
+            new HtmlTable(logFile).createOutputHtml();            
+        }
+        
         return 0;
     }
 
@@ -267,6 +275,9 @@ class exc implements Callable<Integer> {
                         // Содержание `sig` не должно нарушать правил YAML
                         exceptions.add(createExc("SPRING BOOT RESTART", tstamp, null));
                     }
+                    // Также для рестарта можно поискать строку
+                    // ... WFLYSRV0049: WildFly Full ... starting
+
                 }
 
                 String comment = tse.extractComment(line);
@@ -326,7 +337,7 @@ class exc implements Callable<Integer> {
 
     }
 
-    class YmlTable {
+    class HtmlTable {
     
         // SnakeYAML: 
         //   Docs:      https://bitbucket.org/snakeyaml/snakeyaml/wiki/Documentation
@@ -337,15 +348,20 @@ class exc implements Callable<Integer> {
         
         List<Map<String, Object>> list;    
         ArrayList<String> keys;
+        String logFile;
     
-        YmlTable(String logFile) throws Exception {
+        HtmlTable(String logFile) throws Exception {
+            this.logFile = logFile;
             Path yamlPath = Path.of(logFile + ".yml");
             list = yaml.load(Files.newInputStream(yamlPath));
             //System.out.println("List: " + list);
-            assert list.size() < 0;
+            //assert list.size() < 0;
+        }
+        
+        void createOutputHtml() throws FileNotFoundException {
             createOutputHtml(logFile + ".html", list);
         }
-    
+                
         void createOutputHtml(String outFile, List<Map<String, Object>> list) throws FileNotFoundException {
             Map<String, Object> map = list.get(0);
             keys = new ArrayList<>(map.keySet());
