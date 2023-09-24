@@ -2,6 +2,7 @@
 
 .Catalog of jbang scripts
 |===
+| `cmp_tstamps.java`     |  Compare timestamps in two folders
 | `replace_br.java`      |  Replace <br> tags with newlines
 | `remove_html.java`     |  Remove html tags from markdown file
 | `udemy_html_toc.java`  |  Parse html file with Udemy course TOC

@@ -84,6 +84,10 @@
     "replace_br": {
       "script-ref": "replace_br.java",
       "description": "Replace <br> tags with newlines"
+    },
+    "cmp_tstamps": {
+      "script-ref": "cmp_tstamps.java",
+      "description": "Compare timestamps in two folders"
     }
 },
   "templates": {}
