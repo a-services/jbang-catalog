@@ -34,7 +34,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 
-@Command(name = "exc", mixinStandardHelpOptions = true, version = "2023-09-20", 
+@Command(name = "exc", mixinStandardHelpOptions = true, version = "2023-09-28", 
          description = "Checking for exceptions in log file")
 class exc implements Callable<Integer> {
 
@@ -49,7 +49,7 @@ class exc implements Callable<Integer> {
     boolean outputYaml;
 
     @Option(names = { "--html" }, description = "Output HTML file.")
-    boolean outputHtml = true;
+    boolean outputHtml;
 
     List<Exc> exceptions;
 
@@ -81,14 +81,14 @@ class exc implements Callable<Integer> {
                 out.println("File created: " + outName);
             }
             
-        } else {
-            // Send YAML to console
-            printExceptions(out);
-        }
+        } 
         
         if (outputHtml) {
             // Create HTML from YAML file
             new HtmlTable(logFile).createOutputHtml();            
+        } else {
+            // Send YAML to console
+            printExceptions(out);
         }
         
         return 0;
