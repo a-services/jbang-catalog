@@ -10,6 +10,7 @@ import static java.lang.System.out;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.MalformedInputException;
 import java.nio.file.FileVisitResult;
@@ -24,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Command(name = "p_stats", mixinStandardHelpOptions = true, version = "2023-07-27", 
@@ -33,11 +36,14 @@ class p_stats implements Callable<Integer> {
     @Parameters(index = "0", description = "Input folder.", defaultValue = ".")
     Path inputFolder;
     
-    // Output CSV file name for file type counts
+    // Output CSV file name for all file type counts
     String fileTypeCountsCsvName = "fileTypeCounts.csv";
     
     // Output CSV file name for source type counts
     String sourceTypeCountsCsvName = "sourceTypeCounts.csv";
+
+    // Output CSV file name for number of tests for file types
+    String testTypeCountsCsvName = "testTypeCounts.csv";
 
     int totalFileCount = 0;
     int totalLineCount = 0;
@@ -53,7 +59,19 @@ class p_stats implements Callable<Integer> {
         "md", "txt",
         "m", "h", "sql", "jsp");
 
+    List<String> jsFileTypes = Arrays.asList(
+        "js", "jsx", "ts", "tsx"
+    );
+
+    /**
+     * Counts for each file extension.
+     */
     Map<String, Integer> fileTypeCounts = new HashMap<>();
+
+    /**
+     * Counts tests for each file extension.
+     */
+    Map<String, Integer> testTypeCounts = new HashMap<>();
 
     @Override
     public Integer call() throws Exception {
@@ -67,6 +85,8 @@ class p_stats implements Callable<Integer> {
             return 1;
         }
 
+        /* Process each file in the tree.
+         */
         Files.walkFileTree(inputFolder, new FileVisitor<Path>() {
 
             @Override
@@ -114,12 +134,37 @@ class p_stats implements Callable<Integer> {
 
             int n = countLines(file);
             totalLineCount += n;
+
+            if (ext.equals("java")) {
+                int k = countJavaTests(file);
+                addCounter(testTypeCounts, ext, k);
+            } else 
+            if (jsFileTypes.contains(ext)) {
+                int k = countJsTests(file);
+                addCounter(testTypeCounts, ext, k);                
+            } else
+            if (ext.equals("cs")) {
+                int k = countCsTests(file);
+                addCounter(testTypeCounts, ext, k); 
+            }
+
         }
     }
 
+    /**
+     * Count files with extension `ext`.
+     */
     void increaseCounter(Map<String, Integer> countMap, String ext) {
         Integer k = countMap.get(ext);
         countMap.put(ext, k == null ? 1 : k + 1);
+    }
+
+    /**
+     * Add to counter with extension `ext`.
+     */
+    void addCounter(Map<String, Integer> countMap, String ext, int n) {
+        Integer k = countMap.get(ext);
+        countMap.put(ext, k == null ? n : k + n);
     }
 
     /**
@@ -154,6 +199,64 @@ class p_stats implements Callable<Integer> {
         return count;
     }
 
+    String javaTestRegex = "@Test";
+    Pattern javaTestPattern = Pattern.compile(javaTestRegex);
+
+    int countJavaTests(Path file) throws IOException {
+        String input = Files.readString(file);
+        Matcher matcher = javaTestPattern.matcher(input);
+
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
+    }
+
+    String jsTestRegex = "\\bit\\(|\\btest\\(";
+    Pattern jsTestPattern = Pattern.compile(jsTestRegex);
+
+    int countJsTests(Path file) throws IOException {
+        String input = Files.readString(file);
+
+        Matcher matcher = jsTestPattern.matcher(input);
+
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
+    }
+
+    String csTestRegex = "\\[Test\\]|\\[TestMethod\\]|\\[Fact\\]";
+    Pattern csTestPattern = Pattern.compile(csTestRegex);
+
+    int countCsTests(Path file) throws IOException {
+        String input = Files.readString(file);
+        Matcher matcher = csTestPattern.matcher(input);
+
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
+    }
+
+    String pythonTestRegex = "^def test_";
+    Pattern pythonTestPattern = Pattern.compile(pythonTestRegex, Pattern.MULTILINE);
+
+    int countPythonTests(Path file) throws IOException {
+        String input = Files.readString(file);
+
+        Matcher matcher = pythonTestPattern.matcher(input);
+
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
+    }
+
     void outputResults() throws IOException {
         
         saveCountsToCsv(fileTypeCounts, fileTypeCountsCsvName);
@@ -163,6 +266,8 @@ class p_stats implements Callable<Integer> {
             .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
         saveCountsToCsv(sourceTypeCounts, sourceTypeCountsCsvName);
         
+        saveCountsToCsv(testTypeCounts, testTypeCountsCsvName);
+
         // Print totals
         out.println("Input folder: " + inputFolder);
         out.println("                         Total files: " + totalFileCount);
