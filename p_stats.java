@@ -1,4 +1,5 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
+//:folding=explicit:collapseFolds=1:
 //DEPS info.picocli:picocli:4.7.5
 //DEPS org.apache.commons:commons-csv:1.10.0
 //DEPS org.yaml:snakeyaml:1.33
@@ -23,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -35,25 +37,36 @@ import java.util.stream.Stream;
 
 import org.yaml.snakeyaml.Yaml;
 
-@Command(name = "p_stats", mixinStandardHelpOptions = true, version = "2023-10-06", 
+/**
+ * Calculate project stats.
+ */
+@Command(name = "p_stats", mixinStandardHelpOptions = true, version = "2023-10-14", 
          description = "Calculate project stats")
 class p_stats implements Callable<Integer> {
 
-    @Parameters(index = "0", description = "Input folder.", defaultValue = ".")
+    @Parameters(index = "0", defaultValue = ".",
+                description = "Input folder.")
     Path inputFolder;
     
-    @Option(names = { "-r", "--resources" }, description = "Folder to download resources if not available.",
-                    defaultValue = "resources")
+    @Option(names = { "-o", "--output" }, defaultValue = ".",
+            description = "Output folder.")
+    Path outputFolder;
+    
+    @Option(names = { "-r", "--resources" }, defaultValue = "resources",
+            description = "Folder to download resources if not available.")
     Path resourcesFolder;
 
+    // {{{ Output files
     // Output CSV file name for all file type counts
-    String fileTypeCountsCsvName = "file_type_counts.csv";
+    String outputCsvName = "p_stats.csv";
     
-    // Output CSV file name for number of tests for file types
-    String testTypeCountsCsvName = "test_type_counts.csv";
-
-    String errorsCsvName = "errors.csv";
-
+    // Output CSV file name with project roots
+    String projectsCsvName = "p_projects.csv";
+    
+    // Output CSV file with errors
+    String errorsCsvName = "p_errors.csv";
+    // }}}
+    
     Yaml yaml = new Yaml();
 
     int totalFileCount = 0;
@@ -72,11 +85,24 @@ class p_stats implements Callable<Integer> {
      * Map where each file extension is mapped to the name of the language.
      */
     Map<String, String> sourceFileTypes;
-
+    
+    // List of file extensions to search for javascript tests.
     List<String> jsFileTypes = List.of(
         "js", "jsx", "ts", "tsx"
     );
 
+    // {{{ Project counts
+    List<String> projectFiles = List.of(
+        "package.json", "pom.xml", "build.gradle"
+    );
+    
+    // Root project files to path
+    Map<String, List<String>> projectPaths = new HashMap<>();
+    
+    // Length of absolute path to input folder
+    int baseFolderLen;
+    // }}}
+    
     List<ErrorRecord> errors = new ArrayList<>();
 
     /* Regular expressions to count tests */
@@ -93,16 +119,21 @@ class p_stats implements Callable<Integer> {
     String pythonTestRegex = "^def test_";
     Pattern pythonTestPattern = Pattern.compile(pythonTestRegex, Pattern.MULTILINE);
 
-    /**
-     * Counts for each file extension.
+    // {{{ Dictionaries
+    /* Dictionary is a map with a `String` key.
+       File extension is used as a key.
+       We use `df` as 2D Dictionary (aka DataFrame) that contains the counts for each parameter.
+       Each parameter is 1D Dictionary (aka Series).
      */
-    Map<String, Integer> fileTypeCounts = new HashMap<>();
+     
+    Map<String, Map<String, Long>> df = new HashMap<>();
 
-    /**
-     * Counts tests for each file extension.
-     */
-    Map<String, Integer> testTypeCounts = new HashMap<>();
-
+    Map<String, Long> fileCounts;
+    Map<String, Long> lineCounts;
+    Map<String, Long> sizeCounts;
+    Map<String, Long> testCounts;
+    // }}}
+    
     final String HR = "---------------------";
 
     @Override
@@ -119,37 +150,34 @@ class p_stats implements Callable<Integer> {
             return 1;
         }
 
+        // Make sure that `outputFolder` exists
+        if (!Files.exists(outputFolder)) {
+            Files.createDirectories(outputFolder);
+        }
+        
+        // Create Series for each parameter
+        fileCounts = newSeries("files");
+        lineCounts = newSeries("lines");
+        sizeCounts = newSeries("size");
+        testCounts = newSeries("tests");
+        
+        // Create lists in `projectPaths`
+        for (String file: projectFiles) {
+            projectPaths.put(file, new ArrayList<String>());
+        }
+        baseFolderLen = inputFolder.toAbsolutePath().toString().length();        
+
         // Get path to the resource file, download it if needed
         Path langPath = downloadYaml("languages.yml", 
                  "https://raw.githubusercontent.com/github-linguist/linguist/master/lib/linguist/languages.yml");
 
         languages = yaml.load(Files.newInputStream(langPath));
-
-        // Collect all language names and sort them accrording to `knownLanguages`
-        List<String> languagePriority = new ArrayList<>(languages.keySet());
-        languagePriority.sort(new LanguagePriorityComparator());
-
-        // Transform the map and collect into a List of Map Entries
-        List<Map.Entry<String, String>> entryList = languages.entrySet().stream()
-                .flatMap(entry -> {
-                    Object value = entry.getValue().get("extensions");
-                    if (value instanceof List) {
-                        List<String> extensions = (List<String>) value;
-                        return extensions.stream().map(ext -> Map.entry(ext.substring(1), entry.getKey()));
-                    }
-                    return Stream.<Map.Entry<String, String>>empty();
-                })
-                .sorted(Comparator.comparingInt((Map.Entry<String, String> e) -> languagePriority.indexOf(e.getValue()))
-                        .thenComparing(Map.Entry::getKey))
-                .distinct()
-                .collect(Collectors.toList());
-
-        // Convert the List of Map Entries into a Map
-        sourceFileTypes = entryList.stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1));       
+        
+        sourceFileTypes = extractSourceFileTypes(languages);
 
         /* Process each file in the tree.
          */
+        out.print("Scanning..");
         Files.walkFileTree(inputFolder, new FileVisitor<Path>() {
 
             @Override
@@ -179,11 +207,47 @@ class p_stats implements Callable<Integer> {
                 return FileVisitResult.CONTINUE;
             }
         });
+        out.println('.');
 
         outputResults();
         return 0;
     }
+    
+    Map<String, String> extractSourceFileTypes(Map<String, Map<String, Object>> languages) {
+        
+        // Collect all language names and sort them accrording to `knownLanguages`
+        List<String> languagePriority = new ArrayList<>(languages.keySet());
+        languagePriority.sort(new LanguagePriorityComparator());
 
+        // Transform the map and collect into a List of Map Entries
+        List<Map.Entry<String, String>> entryList = languages.entrySet().stream()
+                .flatMap(entry -> {
+                    Object value = entry.getValue().get("extensions");
+                    if (value instanceof List) {
+                        
+                        @SuppressWarnings("unchecked")
+                        List<String> extensions = (List<String>) value;
+
+                        return extensions.stream().map(ext -> Map.entry(ext.substring(1), entry.getKey()));
+                    }
+                    return Stream.<Map.Entry<String, String>>empty();
+                })
+                .sorted(Comparator.comparingInt((Map.Entry<String, String> e) -> languagePriority.indexOf(e.getValue()))
+                        .thenComparing(Map.Entry::getKey))
+                .distinct()
+                .collect(Collectors.toList());
+
+        // Convert the List of Map Entries into a Map
+        return entryList.stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1));         
+    }
+    
+    Map<String, Long> newSeries(String param) {
+        HashMap<String, Long> series = new HashMap<>();
+        df.put(param, series);
+        return series;
+    }
+    
     /**
       Check if `fileName` exists in `resourcesFolder`,
       otherwise it should download it from `downloadUrl`.
@@ -206,10 +270,13 @@ class p_stats implements Callable<Integer> {
 
     void processFile(Path file) throws IOException {
         totalFileCount++;
+        if (totalFileCount % 1000 == 0) {
+            out.print('.');
+        }
 
         String ext = getFileExtension(file.getFileName().toString());
         if (ext.length() > 0) {
-            increaseCounter(fileTypeCounts, ext);
+            addCounter(fileCounts, ext, 1);
         }
         
         String sourceFileType = sourceFileTypes.get(ext);
@@ -219,23 +286,30 @@ class p_stats implements Callable<Integer> {
             try {
                 int n = countLines(file);
                 totalLineCount += n;
+                addCounter(lineCounts, ext, n);
 
+                String fileName = file.getFileName().toString();
+                if (projectFiles.contains(fileName)) {
+                    List<String> pathList = projectPaths.get(fileName);
+                    pathList.add(file.toAbsolutePath().toString().substring(baseFolderLen));
+                }
+                
                 String input = Files.readString(file);
                 if (ext.equals("java")) {
                     int k = countJavaTests(input);
-                    addCounter(testTypeCounts, ext, k);
+                    addCounter(testCounts, ext, k);
                 } else 
                 if (jsFileTypes.contains(ext)) {
                     int k = countJsTests(input);
-                    addCounter(testTypeCounts, ext, k);                
+                    addCounter(testCounts, ext, k);                
                 } else
                 if (ext.equals("cs")) {
                     int k = countCsTests(input);
-                    addCounter(testTypeCounts, ext, k); 
+                    addCounter(testCounts, ext, k); 
                 } else
                 if (ext.equals("py")) {
                     int k = countPythonTests(input);
-                    addCounter(testTypeCounts, ext, k); 
+                    addCounter(testCounts, ext, k); 
                 }
             } catch (MalformedInputException e) {
                 errors.add(new ErrorRecord("MalformedInputException", file.toString()));
@@ -244,18 +318,10 @@ class p_stats implements Callable<Integer> {
     }
 
     /**
-     * Count files with extension `ext`.
-     */
-    void increaseCounter(Map<String, Integer> countMap, String ext) {
-        Integer k = countMap.get(ext);
-        countMap.put(ext, k == null ? 1 : k + 1);
-    }
-
-    /**
      * Add to counter with extension `ext`.
      */
-    void addCounter(Map<String, Integer> countMap, String ext, int n) {
-        Integer k = countMap.get(ext);
+    void addCounter(Map<String, Long> countMap, String ext, long n) {
+        Long k = countMap.get(ext);
         countMap.put(ext, k == null ? n : k + n);
     }
 
@@ -275,8 +341,7 @@ class p_stats implements Callable<Integer> {
     }
 
     /** 
-     * @return The number of lines in a text file
-     * @throws IOException
+     * Count lines in a text file
      */ 
     int countLines(Path file) throws IOException, MalformedInputException {
         int count = 0;
@@ -326,9 +391,9 @@ class p_stats implements Callable<Integer> {
 
     void outputResults() throws IOException {
         
-        saveCountsToCsv(fileTypeCounts, fileTypeCountsCsvName);
-
-        saveCountsToCsv(testTypeCounts, testTypeCountsCsvName);
+        saveCountsToCsv(df, outputCsvName);
+        
+        saveProjectsToCsv(projectPaths, projectsCsvName);
 
         saveErrorsToCsv(errors, errorsCsvName);
 
@@ -341,43 +406,59 @@ class p_stats implements Callable<Integer> {
     }
 
     /**
-     * Save file type counts
-     * @throws IOException
+     * Save dictionary to CSV
      */ 
-    void saveCountsToCsv(Map<String, Integer> countMap, String csvName) throws IOException {
+    void saveCountsToCsv(Map<String, Map<String, Long>> df, String csvName) throws IOException {
 
-        List<String> extList = new ArrayList<>(countMap.keySet());
-        extList.sort(new Comparator<String>() {
+        BufferedWriter writer = Files.newBufferedWriter(outputFolder.resolve(csvName));
 
-            @Override
-            public int compare(String s1, String s2) {
-                Integer k1 = countMap.get(s1);
-                Integer k2 = countMap.get(s2);
-                if (k1 == null) {
-                    k1 = 0;
-                }
-                if (k2 == null) {
-                    k2 = 0;
-                }
-                return k2 - k1;
-            }
-            
-        });
+        List<String> extList = new ArrayList<>(fileCounts.keySet());
+        Collections.sort(extList);
 
-        BufferedWriter writer = Files.newBufferedWriter(Path.of(csvName));
+        List<String> params = new ArrayList<>(df.keySet());
+        Collections.sort(params);
+
+        writer.write("language, " + String.join(", ", params) + "\n");
         for (String ext: extList) {
             String lang = sourceFileTypes.get(ext);
+
+            // Extract values for this extension type
+            Long files = 0L;
+            Long lines = 0L;
+            Long size = 0L;
+            Long tests = 0L;
             if (lang == null) {
                 lang = "";
+            } else {
+                files = fileCounts.get(ext);
+                lines = lineCounts.get(ext);
+                size = sizeCounts.get(ext);
+                tests = testCounts.get(ext);
             }
-            writer.write(String.format("%s, %s, %d\n", lang, ext, countMap.get(ext)));
+            writer.write(String.format("%s, %s, %d, %d, %d, %d\n", lang, ext, files, lines, size, tests));
         }
         writer.close();
         out.println("File created: " + csvName);        
     }
-
+    
+    void saveProjectsToCsv(Map<String, List<String>> projectPaths, String csvName) throws IOException {
+        BufferedWriter writer = Files.newBufferedWriter(outputFolder.resolve(csvName));
+        
+        writer.write("file, project\n");
+        for (Map.Entry<String, List<String>> entry : projectPaths.entrySet()) {
+            String file = entry.getKey();
+            List<String> paths = entry.getValue();
+            for (String project: paths) {
+                writer.write(String.format("%s, %s\n", file, project));
+            }
+        }
+        writer.close();
+        out.println("File created: " + csvName);           
+    }
+    
     void saveErrorsToCsv(List<ErrorRecord> errors, String csvName) throws IOException {
-        BufferedWriter writer = Files.newBufferedWriter(Path.of(csvName));
+        BufferedWriter writer = Files.newBufferedWriter(outputFolder.resolve(csvName));
+        writer.write("error, file\n");
         for (ErrorRecord rec: errors) {
             writer.write(String.format("%s, %s\n", rec.error(), rec.file()));
         }
