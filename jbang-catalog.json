@@ -88,6 +88,10 @@
     "cmp_tstamps": {
       "script-ref": "cmp_tstamps.java",
       "description": "Compare timestamps in two folders"
+    },
+    "obsidian_folder": {
+      "script-ref": "obsidian_folder.java",
+      "description": "Convert Obsidian folder to HTML"
     }
 },
   "templates": {}
