@@ -10,6 +10,7 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Option;
 
 import static java.lang.System.out;
+import static java.lang.System.err;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -40,7 +41,7 @@ import org.yaml.snakeyaml.Yaml;
 /**
  * Calculate project stats.
  */
-@Command(name = "p_stats", mixinStandardHelpOptions = true, version = "2023-10-14", 
+@Command(name = "p_stats", mixinStandardHelpOptions = true, version = "2023-11-01", 
          description = "Calculate project stats")
 class p_stats implements Callable<Integer> {
 
@@ -72,8 +73,9 @@ class p_stats implements Callable<Integer> {
     int totalFileCount = 0;
     int totalLineCount = 0;
     int totalSourceCount = 0;
+    long totalSize = 0;
 
-    List<String> excludedFolders = List.of(".git", ".angular", ".gradle", "bin", "build", "node_modules");
+    List<String> excludedFolders = List.of(".git", ".angular", ".gradle", "bin", "build", "node_modules", "target");
 
     /**
      * Map where a key is the name of the language, and a value is `Map<String, Object>`,
@@ -274,19 +276,28 @@ class p_stats implements Callable<Integer> {
             out.print('.');
         }
 
-        String ext = getFileExtension(file.getFileName().toString());
-        if (ext.length() > 0) {
-            addCounter(fileCounts, ext, 1);
-        }
-        
+        String ext = getFileExtension(file.getFileName().toString());        
         String sourceFileType = sourceFileTypes.get(ext);
         if (sourceFileType != null) {
             totalSourceCount++;
 
-            try {
-                int n = countLines(file);
-                totalLineCount += n;
-                addCounter(lineCounts, ext, n);
+            try {          
+                int nl = countLines(file);
+                long nb = Files.size(file);
+                if (nb == 0) {
+                    errors.add(new ErrorRecord("EmptyFileException", file.toString()));
+                    return;
+                }
+                
+                // Add counters if there was no MalformedInputException
+                
+                addCounter(fileCounts, ext, 1);
+
+                totalLineCount += nl;
+                addCounter(lineCounts, ext, nl);
+                
+                totalSize += nb;
+                addCounter(sizeCounts, ext, nb);
 
                 String fileName = file.getFileName().toString();
                 if (projectFiles.contains(fileName)) {
@@ -402,6 +413,7 @@ class p_stats implements Callable<Integer> {
         out.println(" Total files: " + totalFileCount);
         out.println("Source files: " + totalSourceCount);
         out.println(" Total lines: " + totalLineCount);
+        out.println("  Total size: " + totalSize);
         out.println("      Errors: " + errors.size());    
     }
 
@@ -418,27 +430,32 @@ class p_stats implements Callable<Integer> {
         List<String> params = new ArrayList<>(df.keySet());
         Collections.sort(params);
 
-        writer.write("language, " + String.join(", ", params) + "\n");
+        writer.write("language, ext, " + String.join(", ", params) + "\n");
         for (String ext: extList) {
             String lang = sourceFileTypes.get(ext);
 
             // Extract values for this extension type
-            Long files = 0L;
-            Long lines = 0L;
-            Long size = 0L;
-            Long tests = 0L;
+            long files = 0L;
+            long lines = 0L;
+            long size = 0L;
+            long tests = 0L;
             if (lang == null) {
                 lang = "";
             } else {
+                // out.println("ext: " + ext + ", lang: " + lang);
                 files = fileCounts.get(ext);
-                lines = lineCounts.get(ext);
-                size = sizeCounts.get(ext);
-                tests = testCounts.get(ext);
+                lines = nullAsZero(lineCounts.get(ext));
+                size = nullAsZero(sizeCounts.get(ext));
+                tests = nullAsZero(testCounts.get(ext));
             }
             writer.write(String.format("%s, %s, %d, %d, %d, %d\n", lang, ext, files, lines, size, tests));
         }
         writer.close();
         out.println("File created: " + csvName);        
+    }
+    
+    long nullAsZero(Long obj) {
+        return obj == null? 0 : obj;
     }
     
     void saveProjectsToCsv(Map<String, List<String>> projectPaths, String csvName) throws IOException {
