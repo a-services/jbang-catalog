@@ -45,8 +45,9 @@ import com.vladsch.flexmark.util.data.MutableDataSet;
 import com.vladsch.flexmark.util.html.MutableAttributes;
 
 import java.util.Arrays;
+import java.util.List;
 
-@Command(name = "obsidian_folder", mixinStandardHelpOptions = true, version = "2023-11-07", 
+@Command(name = "obsidian_folder", mixinStandardHelpOptions = true, version = "2023-11-08", 
          description = "Convert Obsidian folder to HTML")
 class obsidian_folder implements Callable<Integer> {
 
@@ -56,13 +57,13 @@ class obsidian_folder implements Callable<Integer> {
     @Parameters(index = "1", defaultValue = ".", description = "Output folder.")
     Path outputFolder;
 
-    @Option(names = { "-a", "--asciidoc" }, description = "Output AsciiDoc")
+    @Option(names = { "-a", "--asciidoc" }, description = "Output AsciiDoc (experimental)")
     boolean outputAsciiDoc;
 
     @Option(names = { "-f", "--file" }, description = "Process single file")
     String fileName;
 
-    @Option(names = { "-iw", "--image-width" }, description = "Width for images")
+    @Option(names = { "-iw", "--image-width" }, description = "Width for images (experimental)")
     Integer imageWidth;
 
     // Regular expression pattern to match [[name]]
@@ -128,23 +129,28 @@ class obsidian_folder implements Callable<Integer> {
         @NotNull
         Builder builder = HtmlRenderer.builder();
         if (imageWidth != null) {
-            builder.extensions(Arrays.asList(ImageAttributesExtension.create()));
+            List<ImageAttributesExtension> extension = Arrays.asList(ImageAttributesExtension.create());
+            builder.extensions(extension);
         }
         HtmlRenderer renderer = builder.build();
         String htmlContent = renderer.render(parser.parse(markdownContent));
         String name = removeExt(markdownFile.getFileName().toString());
 
         htmlContent = String.format("""
-                <!DOCTYPE html>
+                <!doctype html>
                 <html lang="en">
                 <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
                     <title>%s</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
                 </head>
                 <body>
-                <h3>%s</h3>
-                %s
+                <div class="container">
+                    <h3>%s</h3>
+                    %s
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+                </div>
                 </body>
                 </html>
                 """,
@@ -154,9 +160,6 @@ class obsidian_folder implements Callable<Integer> {
         out.println(htmlName);
         saveStr(htmlName, htmlContent);
     }
-
-
-
 
     private void createAsciiDoc(Path markdownFile) throws IOException {
         String markdownContent = Files.readString(markdownFile, StandardCharsets.UTF_8);
@@ -260,12 +263,37 @@ class ImageAttributeProvider implements AttributeProvider {
     
     @Override
     public void setAttributes(@NotNull Node node, @NotNull AttributablePart part, @NotNull MutableAttributes attributes) {
-        
-        if (node instanceof Image && part == AttributablePart.LINK) {
-            // Assuming you have a way to get your desired width, for example, from the alt text or another source
-            String width = "desired width here";
-            attributes.addValue("width", width);
+        if (node instanceof Image) { // && part == AttributablePart.LINK) {
+            // out.printf("""
+            //     ImageAttributeProvider:
+            //       setAttributes:
+            //         node:
+            //           %s
+            //         part:
+            //           %s
+            //         attributes:
+            //           %s  
+            //     """,
+            //     node, part, attributes);
+            String alt = attributes.getValue("alt");
+            //out.println("alt: " + alt);
+            String width = extractWidth(alt);
+            if (width != null) {
+                out.println("width: " + width);
+                attributes.addValue("width", width);
+            }
         }
+    }
+
+    private String extractWidth(String alt) {
+        if (alt == null) {
+            return null;
+        }
+        int k = alt.indexOf('|');
+        if (k == -1) {
+            return null;
+        }
+        return alt.substring(k + 1);
     }
 
     static AttributeProviderFactory Factory() {
@@ -273,6 +301,7 @@ class ImageAttributeProvider implements AttributeProvider {
             @NotNull
             @Override
             public AttributeProvider apply(@NotNull LinkResolverContext context) {
+                //out.println("[ImageAttributeProvider.Factory] apply");
                 return new ImageAttributeProvider();
             }
         };
@@ -284,14 +313,17 @@ class ImageAttributesExtension implements HtmlRenderer.HtmlRendererExtension {
     @Override
     public void rendererOptions(final MutableDataHolder options) {
         // add any configuration settings to options you want to apply to everything, here
+        //out.println("[ImageAttributesExtension] rendererOptions");
     }
 
     @Override
     public void extend(HtmlRenderer.Builder rendererBuilder, String rendererType) {
+        //out.println("[ImageAttributesExtension] extend");
         rendererBuilder.attributeProviderFactory(ImageAttributeProvider.Factory());
     }
 
     public static ImageAttributesExtension create() {
+        //out.println("[ImageAttributesExtension] create");
         return new ImageAttributesExtension();
     }
 }

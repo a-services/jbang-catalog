@@ -2,7 +2,7 @@
 
 .Catalog of jbang scripts
 |===
-| `obsidian_folder.java` |  Convert Obsidian folder to HTML
+| link:doc/obsidian_folder.adoc[obsidian_folder.java] |  Convert Obsidian folder to HTML
 | `cmp_tstamps.java`     |  Compare timestamps in two folders
 | `replace_br.java`      |  Replace <br> tags with newlines
 | `remove_html.java`     |  Remove html tags from markdown file

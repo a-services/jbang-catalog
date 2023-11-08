@@ -1,0 +1,51 @@
+= obsidian_folder
+
+----
+Usage: obsidian_folder [-ahV] [-f=<fileName>] [-iw=<imageWidth>] <inputFolder>
+                       <outputFolder>
+Convert Obsidian folder to HTML
+      <inputFolder>       Input folder.
+      <outputFolder>      Output folder.
+  -a, --asciidoc          Output AsciiDoc (experimental)
+  -f, --file=<fileName>   Process single file
+  -h, --help              Show this help message and exit.
+      -iw, --image-width=<imageWidth>
+                          Width for images (experimental)
+  -V, --version           Print version information and exit.
+----
+
+You can specify image width in markdown files as:
+`![|width](url)`.
+
+See: link:https://help.obsidian.md/Editing+and+formatting/Basic+formatting+syntax#External%20images[
+External Images in Obsidian]
+
+== Convert Markdown to HTML.
+
+flexmark-java github:: https://github.com/vsch/flexmark-java
+
+flexmark-java core 0.64.8 API:: https://www.javadoc.io/doc/com.vladsch.flexmark/flexmark/latest/index.html
+
+Parser::
+https://www.javadoc.io/doc/com.vladsch.flexmark/flexmark/latest/com/vladsch/flexmark/parser/Parser.html
+
+HtmlRenderer::
+https://www.javadoc.io/doc/com.vladsch.flexmark/flexmark/latest/com/vladsch/flexmark/html/HtmlRenderer.html
+
+Parser.ParserExtension::
+https://www.javadoc.io/doc/com.vladsch.flexmark/flexmark/latest/com/vladsch/flexmark/parser/Parser.ParserExtension.html
+
+Parser.Builder::
+https://www.javadoc.io/doc/com.vladsch.flexmark/flexmark/latest/com/vladsch/flexmark/parser/Parser.Builder.html
+
+AbstractBlockParser::
+https://www.javadoc.io/doc/com.vladsch.flexmark/flexmark/latest/com/vladsch/flexmark/parser/block/AbstractBlockParser.html
+
+AttributeProvider::
+https://www.javadoc.io/doc/com.vladsch.flexmark/flexmark/latest/com/vladsch/flexmark/html/AttributeProvider.html
+
+AttributeProviderFactory::
+https://www.javadoc.io/doc/com.vladsch.flexmark/flexmark/latest/com/vladsch/flexmark/html/AttributeProviderFactory.html
+
+AttributeProviderSample::
+https://github.com/vsch/flexmark-java/blob/master/flexmark-java-samples/src/com/vladsch/flexmark/java/samples/AttributeProviderSample.java

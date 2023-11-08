@@ -7,6 +7,33 @@ outputFile = "README.adoc"
 
 import groovy.json.JsonSlurper
 
+import java.nio.file.Files
+import java.nio.file.Paths
+
+String checkDoc(String fileNameWithExtension) {
+    // Extract the file name without extension
+    String fileNameWithoutExtension = fileNameWithExtension.lastIndexOf('.') > 0 ? 
+        fileNameWithExtension.substring(0, fileNameWithExtension.lastIndexOf('.')) : 
+        fileNameWithExtension
+
+    // Define the path to the 'doc' directory
+    String docFolderPath = "doc/"
+    
+    // Construct the path to the .adoc file
+    String adocFilePath = docFolderPath + fileNameWithoutExtension + ".adoc"
+
+    // Check if the .adoc file exists in the 'doc' folder
+    if (Files.exists(Paths.get(adocFilePath))) {
+        // If it exists, return the formatted link string
+        return "link:doc/${fileNameWithoutExtension}.adoc[${fileNameWithExtension}]"
+    } else {
+        // If the file does not exist, return the original file name with its extension
+        return pad(fileNameWithExtension, 20)
+    }
+}
+
+// ------------------
+
 PrintWriter f = new PrintWriter(new FileOutputStream(outputFile));
 f.println("= jbang-catalog\n");
 f.println(".Catalog of jbang scripts");
@@ -22,7 +49,9 @@ aliases = aliases.reverse()
 
 f.println("|===");
 for (c: aliases) {
-    f.println("| ${pad(c['script-ref'], 20)} |  ${c.description}");
+	scriptFile = c['script-ref']
+
+    f.println("| ${checkDoc(scriptFile)} |  ${c.description}");
 }
 f.println("|===");
 
