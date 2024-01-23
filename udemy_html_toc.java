@@ -5,8 +5,12 @@
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
+import picocli.CommandLine.Option;
 
 import java.util.concurrent.Callable;
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -21,6 +25,9 @@ class udemy_html_toc implements Callable<Integer> {
 
     @Parameters(index = "0", description = "Input file", defaultValue = "toc.html")
     private String inputFile;
+
+    @Option(names = {"-n", "--numbers"}, description = "Section numbers")
+    private boolean sectionNumbers;
 
     // JSoup DOM Navigation
     // https://jsoup.org/cookbook/extracting-data/dom-navigation
@@ -37,15 +44,26 @@ class udemy_html_toc implements Callable<Integer> {
             String titleClass = "ud-accordion-panel-title";
             String itemClass = "ud-block-list-item-content";
 
+            int titleNum = 0;
+            int itemNum = 0;
+
             Elements spanElements = document.select("span." + titleClass + ", div." + itemClass);
             for (Element spanElement : spanElements) {
                 if (spanElement.className().equals(titleClass)) {
+                    titleNum++;
+                    String n = sectionNumbers? titleNum + ". " : "";
                     Elements titleElement = spanElement.select(".section--section-title--wcp90");
-                    System.out.println(titleElement.text());
+                    System.out.println(n + titleElement.text());
                 }
                 if (spanElement.className().equals(itemClass)) {
                     Elements itemElement = spanElement.select("span");
-                    System.out.println("  " + itemElement.get(0).text());                    
+                    String itemName = itemElement.get(0).text();
+                    boolean hasNumber = itemHasNumber(spanElement);
+                    if (hasNumber) {
+                        itemNum++;
+                    }
+                    String n = sectionNumbers && hasNumber? itemNum + ". " : "";
+                    System.out.println("  " + n + itemName);                    
                 }
             }
         } catch (IOException e) {
@@ -53,6 +71,17 @@ class udemy_html_toc implements Callable<Integer> {
         }
 
         return 0;
+    }
+
+    boolean itemHasNumber(Element spanElement) {
+        Pattern timePattern = Pattern.compile("^\\d{2}:\\d{2}$");
+        Elements timeElements = spanElement.select(".section--item-content-summary--1DW7L");
+        if (timeElements.isEmpty()) {
+            return false;
+        }
+        String timeStamp = timeElements.get(0).text();
+        Matcher matcher = timePattern.matcher(timeStamp);
+        return matcher.find();
     }
 
     public static void main(String... args) {
