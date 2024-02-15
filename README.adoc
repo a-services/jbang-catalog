@@ -9,7 +9,7 @@
 | `udemy_html_toc.java`  |  Parse html file with Udemy course TOC
 | `bookserver.java`      |  HTTP server that serves markdown files from folder which name ends with ` Book`
 | `extract_html_headers.java` |  Extract header tags from html file as indented text to create table of contents
-| `p_stats.java`         |  Calculate project stats
+| link:doc/p_stats.adoc[p_stats.java] |  Calculate project stats
 | `file_index.java`      |  Generate index of files for current folder
 | `har2postman.java`     |  Convert HAR file with HTTP requests exported from Chrome to Postman collection
 | `svg_icons.java`       |  Create set of png icons from svg file
