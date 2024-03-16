@@ -19,26 +19,23 @@ import java.util.concurrent.Callable;
 /**
  * Вырезать страничку из HTML созданным Calibre
  */
-@Command(name = "calibre_page", mixinStandardHelpOptions = true, version = "2023-02-27",
+@Command(name = "calibre_page", mixinStandardHelpOptions = true, version = "2024-03-16",
         description = "Extract page from HTML created by Calibre")
 class calibre_page implements Callable<Integer> {
 
-    @Parameters(index = "0", description = "Page title")
-    private String pageTitle;
-
-    @Option(names = {"-t", "--title"}, description = "HTML file", required = true,
-            defaultValue = "./html/index.html")
-    private Path htmlFile;
-
-    @Option(names = {"-i", "--index"}, description = "Index number")
+    @Parameters(index = "0", description = "Index number for calibre_link tag")
     private Integer indexNum;
 
-    @Option(names = {"-i1", "--start-index"}, description = "Start index")
-    private String startIndex;
+    @Option(names = {"-i1", "--start-tag"}, description = "Start tag for the extracted text")
+    private String startTag;
 
-    @Option(names = {"-i2", "--end-index"}, description = "End index")
-    private String endIndex;
+    @Option(names = {"-i2", "--end-tag"}, description = "End tag for the extracted text")
+    private String endTag;
     
+    @Option(names = {"-f", "--file"}, description = "HTML file", required = true,
+        defaultValue = "./html/index.html")
+    private Path htmlFile;
+
     // Java Tutorial: List
     // https://docs.oracle.com/javase/tutorial/collections/interfaces/list.html
 
@@ -49,39 +46,39 @@ class calibre_page implements Callable<Integer> {
     public Integer call() throws Exception { 
 
         if (indexNum != null) {
-            startIndex = "calibre_link-" + indexNum;
-            endIndex = "calibre_link-" + (indexNum + 1);
+            startTag = "calibre_link-" + indexNum;
+            endTag = "calibre_link-" + (indexNum + 1);
         }
-        if (startIndex == null) {
+        if (startTag == null) {
             out.println("[ERROR] Start index required");
             return 1;
         }
-        if (endIndex == null) {
+        if (endTag == null) {
             out.println("[ERROR] End index required");
             return 1;
         }
 
-        out.println("  HTML File: " + htmlFile);
-        out.println("Start index: " + startIndex);
-        out.println("  End index: " + endIndex);
+        out.println("HTML File: " + htmlFile);
+        out.println("Start tag: " + startTag);
+        out.println("  End tag: " + endTag);
 
         lines = Files.readAllLines(htmlFile);
-        int k1 = findLineIndex(startIndex);
+        int k1 = findLineIndex(startTag);
         if (k1 == -1) {
-            out.println("[ERROR] Start index not found: " + startIndex);
+            out.println("[ERROR] Start tag not found: " + startTag);
             return 1;
         }
-        int k2 = findLineIndex(endIndex);
+        int k2 = findLineIndex(endTag);
         if (k2 == -1) {
-            out.println("[ERROR] End index not found: " + endIndex);
+            out.println("[ERROR] End tag not found: " + endTag);
             return 1;
         }
         if (k1 >= k2) {
-            out.println("[ERROR] Start index greater or equal than end index");
+            out.println("[ERROR] Start tag is after the end tag");
             return 1;
         }
 
-        saveStr(pageTitle + ".html", String.join("\n", lines.subList(k1, k2)));
+        saveStr(startTag + ".html", String.join("\n", lines.subList(k1, k2)));
         return 0;
     }
 
