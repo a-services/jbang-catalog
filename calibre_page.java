@@ -1,5 +1,5 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS info.picocli:picocli:4.7.1
+//DEPS info.picocli:picocli:4.7.5
 
 
 import picocli.CommandLine;
@@ -23,13 +23,13 @@ import java.util.concurrent.Callable;
         description = "Extract page from HTML created by Calibre")
 class calibre_page implements Callable<Integer> {
 
-    @Parameters(index = "0", description = "Index number for calibre_link tag")
+    @Parameters(index = "0", description = "Index number for calibre_link tag", defaultValue="-1")
     private Integer indexNum;
 
-    @Option(names = {"-i1", "--start-tag"}, description = "Start tag for the extracted text")
+    @Option(names = {"-s", "--start-tag"}, description = "Start tag for the extracted text")
     private String startTag;
 
-    @Option(names = {"-i2", "--end-tag"}, description = "End tag for the extracted text")
+    @Option(names = {"-e", "--end-tag"}, description = "End tag for the extracted text")
     private String endTag;
     
     @Option(names = {"-f", "--file"}, description = "HTML file", required = true,
@@ -45,14 +45,18 @@ class calibre_page implements Callable<Integer> {
     @Override
     public Integer call() throws Exception { 
 
-        if (indexNum != null) {
-            startTag = "calibre_link-" + indexNum;
-            endTag = "calibre_link-" + (indexNum + 1);
+        if (indexNum >= 0) {
+            if (startTag == null) {
+                startTag = "calibre_link-" + indexNum;
+            }
+            if (endTag == null) {
+                endTag = "calibre_link-" + (indexNum + 1);
+            }
         }
         if (startTag == null) {
             out.println("[ERROR] Start index required");
             return 1;
-        }
+        } 
         if (endTag == null) {
             out.println("[ERROR] End index required");
             return 1;
