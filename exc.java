@@ -1,5 +1,6 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS info.picocli:picocli:4.7.0
+//JAVA 17+
+//DEPS info.picocli:picocli:4.7.5
 //DEPS org.yaml:snakeyaml:1.33
 
 import static java.lang.System.out;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
@@ -34,7 +36,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 
-@Command(name = "exc", mixinStandardHelpOptions = true, version = "2023-09-28", 
+@Command(name = "exc", mixinStandardHelpOptions = true, version = "2024-04-05", 
          description = "Checking for exceptions in log file")
 class exc implements Callable<Integer> {
 
@@ -51,6 +53,12 @@ class exc implements Callable<Integer> {
     @Option(names = { "--html" }, description = "Output HTML file.")
     boolean outputHtml;
 
+    @Option(names = { "--encoding" }, description = "Log file encoding.")
+    String encoding = "UTF-8";
+    
+    @Option(names = { "--skip" }, description = "Skip prefix length.")
+    int skipPrefix = 0;
+
     List<Exc> exceptions;
 
     ExcProcessor proc;
@@ -64,7 +72,8 @@ class exc implements Callable<Integer> {
             return 1;
         }
 
-        String logText = Files.readString(logPath);
+        Charset charset = Charset.forName(encoding);
+        String logText = Files.readString(logPath, charset);
         extractExceptions(logText);
 
         if (outputHtml) {
@@ -108,7 +117,7 @@ class exc implements Callable<Integer> {
         proc = new ExcProcessor();
         TimestampExtractor tse = new SimpleTimestampExtractor();
         if (timeStampFormat != null) {
-            tse.setDateFormat(timeStampFormat);
+            tse.setDateFormat(timeStampFormat, skipPrefix);
         }
         exceptions = proc.process(logText, tse);
 
@@ -127,107 +136,7 @@ class exc implements Callable<Integer> {
         System.exit(exitCode);
     }
 
-    // ------ Classes 
-
-    interface TimestampExtractor {
-
-        String extractTimestamp(String line);
-
-        Date parse(String tstamp);
-
-        Date getTimestamp();
-
-        String extractComment(String line);
-
-        void setDateFormat(String dformat);
-
-    }
-
-    /**
-     * Extract timestamp from the beginning of log line
-     * in common `yyyy-MM-dd HH:mm:ss.SSS` format.
-     *
-     * It that fails, try `yyyy-MM-dd HH:mm:ss` format.
-     *
-     * It that fails, try `yyyy-MM-dd HH:mm` format.
-     */
-    class SimpleTimestampExtractor implements TimestampExtractor {
-
-        /**
-         * Expected length of timestamp
-         */
-        private static final int LEN = 24;
-
-        Date date;
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
-
-        @Override
-        public void setDateFormat(String dformat) {
-            if (dformat != null) {
-                df = new SimpleDateFormat(dformat);
-            }
-        }
-
-        @Override
-        public String extractTimestamp(String line) {
-            if (line == null || line.length() < LEN) {
-                return null;
-            }
-            try {
-                String tstamp = line.substring(0, LEN);
-                date = df.parse(tstamp);
-                return tstamp;
-            } catch (Exception e) {
-                return null;
-            }
-        }
-
-        @Override
-        public Date getTimestamp() {
-            return date;
-        }
-
-        public Date parse(String tstamp) {
-            try {
-                return df.parse(tstamp);
-            } catch (ParseException e) {
-                return new Date(0);
-            }
-        }
-
-        /**
-         * The following code can be included into servlet filter
-         * of the app to track which URL causes which exception.
-         *
-         * ```java
-        private void memoryInfo(HttpServletRequest request) {
-            long heapSize = Runtime.getRuntime().totalMemory();
-            long heapMaxSize = Runtime.getRuntime().maxMemory();
-            long heapFreeSize = Runtime.getRuntime().freeMemory();
-            String uri = request.getRequestURI();
-            log.info("[memoryInfo] uri=" + uri + ", free=" + heapFreeSize + ", total=" + heapSize + ", max=" + heapMaxSize);
-        }
-         * ```
-         */
-        @Override
-        public String extractComment(String line) {
-            if (line == null) {
-                return null;
-            }
-            final String FLAG = "[memoryInfo] uri=";
-            int k = line.indexOf(FLAG);
-            if (k == -1) {
-                return null;
-            }
-            k += FLAG.length();
-            int n = line.indexOf(",", k);
-            if (n == -1) {
-                return null;
-            }
-            return line.substring(k, n);
-        }
-
-    }
+    // ------ Inner Classes 
 
     class Exc {
 
@@ -272,12 +181,8 @@ class exc implements Callable<Integer> {
                     lastTime = tstamp;
 
                     if (line.contains("  :: Spring Boot ::  ")) {
-                        // Содержание `sig` не должно нарушать правил YAML
                         exceptions.add(createExc("SPRING BOOT RESTART", tstamp, null));
                     }
-                    // Также для рестарта можно поискать строку
-                    // ... WFLYSRV0049: WildFly Full ... starting
-
                 }
 
                 String comment = tse.extractComment(line);
@@ -429,5 +334,109 @@ class exc implements Callable<Integer> {
     
     }
     
+
+}
+
+// ------ Outer Classes 
+
+interface TimestampExtractor {
+
+    String extractTimestamp(String line);
+
+    Date parse(String tstamp);
+
+    Date getTimestamp();
+
+    String extractComment(String line);
+
+    void setDateFormat(String dformat, int skipPrefixLength);
+
+}
+
+/**
+ * Extract timestamp from the beginning of log line.
+ */
+class SimpleTimestampExtractor implements TimestampExtractor {
+
+    /**
+     * Expected length of timestamp
+     */
+    private int timestampLength = 24;
+
+    /**
+     * Skip prefix before timestamp.
+     */
+    private int skipPrefixLength = 0;
+
+    Date date;
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+
+    @Override
+    public void setDateFormat(String dformat, int skipPrefixLength) {
+        if (dformat != null) {
+            df = new SimpleDateFormat(dformat);
+            timestampLength = dformat.length() + skipPrefixLength;
+            this.skipPrefixLength = skipPrefixLength;
+        }
+    }
+
+    @Override
+    public String extractTimestamp(String line) {
+        if (line == null || line.length() < timestampLength) {
+            return null;
+        }
+        try {
+            String tstamp = line.substring(skipPrefixLength, timestampLength);
+            date = df.parse(tstamp);
+            return tstamp;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public Date getTimestamp() {
+        return date;
+    }
+
+    public Date parse(String tstamp) {
+        try {
+            return df.parse(tstamp);
+        } catch (ParseException e) {
+            return new Date(0);
+        }
+    }
+
+    /**
+     * The following code can be included into servlet filter
+     * of the app to track which URL causes which exception.
+     *
+     * ```java
+    private void memoryInfo(HttpServletRequest request) {
+        long heapSize = Runtime.getRuntime().totalMemory();
+        long heapMaxSize = Runtime.getRuntime().maxMemory();
+        long heapFreeSize = Runtime.getRuntime().freeMemory();
+        String uri = request.getRequestURI();
+        log.info("[memoryInfo] uri=" + uri + ", free=" + heapFreeSize + ", total=" + heapSize + ", max=" + heapMaxSize);
+    }
+        * ```
+        */
+    @Override
+    public String extractComment(String line) {
+        if (line == null) {
+            return null;
+        }
+        final String FLAG = "[memoryInfo] uri=";
+        int k = line.indexOf(FLAG);
+        if (k == -1) {
+            return null;
+        }
+        k += FLAG.length();
+        int n = line.indexOf(",", k);
+        if (n == -1) {
+            return null;
+        }
+        return line.substring(k, n);
+    }
 
 }
