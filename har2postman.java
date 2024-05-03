@@ -43,7 +43,7 @@ class har2postman implements Callable<Integer> {
         String jsonStr = Files.readString(Paths.get(harFile));
         JSONObject json = new JSONObject(jsonStr);
         
-        // пройти по списку запросов в har-файле
+        // go through the list of queries in the har file
         JSONArray logEntries = json.getJSONObject("log").getJSONArray("entries");
         ArrayList<RequestLine> reqList = new ArrayList<>();
         out.println("--------------------");
@@ -135,7 +135,7 @@ class PostmanService {
     final String aexKeyVar = "aex_key";
 
     /** 
-     * Сохранить список запросов в постмановскую коллекцию
+     * Save the list of requests to the Postman collection
      */
     public void saveRequests(List<RequestLine> aexRequests, String postmanCollectionName) 
     {
