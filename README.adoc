@@ -2,6 +2,7 @@
 
 .Catalog of jbang scripts
 |===
+| `git_changes.java`     |  Copy added/changed files from git to backup folder
 | link:doc/obsidian_folder.adoc[obsidian_folder.java] |  Convert Obsidian folder to HTML
 | `cmp_tstamps.java`     |  Compare timestamps in two folders
 | `replace_br.java`      |  Replace <br> tags with newlines

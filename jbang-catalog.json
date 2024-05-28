@@ -92,6 +92,10 @@
     "obsidian_folder": {
       "script-ref": "obsidian_folder.java",
       "description": "Convert Obsidian folder to HTML"
+    },
+    "git_changes": {
+      "script-ref": "git_changes.java",
+      "description": "Copy added/changed files from git to backup folder"
     }
 },
   "templates": {}
