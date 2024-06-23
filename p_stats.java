@@ -1,5 +1,6 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //:folding=explicit:collapseFolds=1:
+//JAVA 17+
 //DEPS info.picocli:picocli:4.7.5
 //DEPS org.apache.commons:commons-csv:1.10.0
 //DEPS org.yaml:snakeyaml:1.33
