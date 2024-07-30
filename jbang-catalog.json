@@ -96,6 +96,14 @@
     "git_changes": {
       "script-ref": "git_changes.java",
       "description": "Copy added/changed files from git to backup folder"
+    },
+    "tommy": {
+      "script-ref": "tommy.java",
+      "description": "Tomcat - Create Windows Deployment Scripts"
+    },
+    "README": {
+      "script-ref": "README.java",
+      "description": "Generate `README.adoc` from `jbang-catalog.json`"
     }
 },
   "templates": {}

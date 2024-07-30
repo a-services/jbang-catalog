@@ -1,0 +1,30 @@
+= Tomcat - Create Windows Deployment Scripts
+
+----
+Usage: tommy [-hV]
+Tomcat - Create Windows Deployment Scripts
+  -h, --help      Show this help message and exit.
+  -V, --version   Print version information and exit.
+----
+
+Creates Windows `bat` files to compile Maven project, send it to Tomcat and start server, so you can use VS Code to debug the app.
+
+Expects file `tommy.yaml` in current folder.
+
+.Example
+```yaml
+CATALINA_HOME: 'C:\dev\tomcat\apache-tomcat-9.0.89' <1>
+projects:
+  1:                                                <2>
+    PROJECT_HOME: 'C:\dev\repos\store'              <3>
+    WAR_PATH: 'target\apps#store.war'               <4>
+  2:
+    PROJECT_HOME: 'C:\dev\repos\catalog'
+    WAR_PATH: 'apps-catalog\target\apps#catalog.war'
+```
+
+<1> Tomcat folder
+<2> Project IDs
+<3> Project folder
+<4> Path to `war` file
+

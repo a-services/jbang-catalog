@@ -2,6 +2,8 @@
 
 .Catalog of jbang scripts
 |===
+| `README.java`          |  Generate `README.adoc` from `jbang-catalog.json`
+| link:doc/tommy.adoc[tommy.java] |  Tomcat - Create Windows Deployment Scripts
 | `git_changes.java`     |  Copy added/changed files from git to backup folder
 | link:doc/obsidian_folder.adoc[obsidian_folder.java] |  Convert Obsidian folder to HTML
 | `cmp_tstamps.java`     |  Compare timestamps in two folders
