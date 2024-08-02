@@ -40,7 +40,7 @@ import org.apache.commons.csv.CSVRecord;
         "@|cyan |__|    \\___/ |_____||_____||_____||__|\\_|  \\___||____||_____||_____| \\___||@",
         "@|cyan                                                                            |@",
         ""
-}, name = "folder_sizes", mixinStandardHelpOptions = true, version = "2023-05-01", 
+}, name = "folder_sizes", mixinStandardHelpOptions = true, version = "2024-08-02", 
    description = "Calculate folder sizes.")
 public class folder_sizes implements Callable<Integer> {
 
@@ -115,7 +115,7 @@ public class folder_sizes implements Callable<Integer> {
                     topSize = total;
                 }
 
-                // Если мы знаем размер этой папки, не нужно ее сканировать
+                // If we know the size of this folder, there is no need to scan it.
                 Long knownSize = knownFolders.get(dir);
                 if (knownSize != null) {
                     total += knownSize;
@@ -127,7 +127,7 @@ public class folder_sizes implements Callable<Integer> {
                     return FileVisitResult.SKIP_SUBTREE;
                 }
 
-                // Возможно, в этой папке есть информация о размерах подпапок
+                // This folder may contain information about the sizes of subfolders.
                 Path csv = dir.resolve(csvName);
                 if (Files.exists(csv) && !ignoreCsvFiles) {
                     if (trackCsvFiles) {
@@ -254,11 +254,11 @@ public class folder_sizes implements Callable<Integer> {
         Iterable<CSVRecord> records = CSVFormat.EXCEL.parse(in);
         int lno = 0;
 
-        // Пройдем по строкам CSV-файла
+        // Let's go through the lines of the CSV file
         for (CSVRecord record : records) {
             lno++;
             
-            // Папка, указанная в 1й колонке должна существовать
+            // The folder specified in the 1st column must exist.
             String folderName = record.get(0);
             Path folder = dir.resolve(folderName);
             if (!Files.exists(folder)) {
@@ -267,7 +267,7 @@ public class folder_sizes implements Callable<Integer> {
 
             Long size = null;
 
-            // 2я колонка может содержать размер в байтах
+            // 2nd column can contain size in bytes
             String byteStr = record.get(1).trim();
             if (byteStr.length() > 0) {
                 try {
@@ -278,7 +278,7 @@ public class folder_sizes implements Callable<Integer> {
                 continue;
             } 
 
-            // 3я колонка может содержать размер в кбайтах
+            // 3rd column can contain size in kbytes
             String kbyteStr = record.get(2).trim();
             if (kbyteStr.length() > 0) {
                 try {
@@ -289,7 +289,7 @@ public class folder_sizes implements Callable<Integer> {
                 continue;
             } 
 
-            // 4я колонка может содержать размер в мбайтах
+            // The 4th column may contain the size in MB.
             String mbyteStr = record.get(3).trim();
             if (mbyteStr.length() > 0) {
                 try {
