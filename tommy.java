@@ -106,6 +106,7 @@ class deploy implements Callable<Integer> {
 
         REM Step 3: Deploy the WAR file
         if %START_STEP% EQU 3 (
+            echo     %CATALINA_HOME%
             echo === Deploying WAR file from %PROJECT_HOME%
             copy %PROJECT_HOME%\\%WAR_PATH% %CATALINA_HOME%\\webapps\\
             if %ERRORLEVEL% NEQ 0 call :handle_error "WAR file copy"
