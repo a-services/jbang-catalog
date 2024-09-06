@@ -245,7 +245,7 @@ class exc implements Callable<Integer> {
                     lastTime = tstamp;
 
                     if (line.contains(restartSignature)) {
-                        exceptions.add(createExc("SPRING BOOT RESTART", tstamp, null));
+                        exceptions.add(createExc("SERVER RESTART", tstamp, null));
                     }
                 }
 
