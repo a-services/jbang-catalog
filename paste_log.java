@@ -1,25 +1,28 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS info.picocli:picocli:4.7.6
 
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
-
-import java.util.concurrent.Callable;
-
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.datatransfer.Transferable;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Properties;
+import java.util.concurrent.Callable;
 
 import javax.swing.JOptionPane;
-import java.util.Properties;
+
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
 
 // https://github.com/a-services/jbang-catalog/blob/main/paste_log.java
 
@@ -57,22 +60,55 @@ class paste_log implements Callable<Integer> {
         return 0;
     }
 
-    String paste() {
+    public String paste() {
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        DataFlavor flavor = DataFlavor.stringFlavor;
-        if (clipboard.isDataFlavorAvailable(flavor)) {
-            try {
-                String text = (String) clipboard.getData(flavor);
-                return text;
+        Transferable contents = clipboard.getContents(null);
 
-            } catch (UnsupportedFlavorException e) {
-                System.out.println(e);
-            } catch (IOException e) {
+        if (contents != null) {
+            try {
+                // Try to get the data as a String using stringFlavor
+                if (contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                    return (String) contents.getTransferData(DataFlavor.stringFlavor);
+                } else {
+                    // If stringFlavor is not supported, iterate over available flavors
+                    DataFlavor[] flavors = contents.getTransferDataFlavors();
+                    for (DataFlavor flavor : flavors) {
+                        try {
+                            Object data = contents.getTransferData(flavor);
+
+                            if (data instanceof String) {
+                                return (String) data;
+                            } else if (data instanceof Reader) {
+                                // Read data from a Reader
+                                BufferedReader br = new BufferedReader((Reader) data);
+                                StringBuilder sb = new StringBuilder();
+                                String line;
+                                while ((line = br.readLine()) != null) {
+                                    sb.append(line);
+                                }
+                                return sb.toString();
+                            } else if (data instanceof InputStream) {
+                                // Read data from an InputStream
+                                BufferedReader br = new BufferedReader(new InputStreamReader((InputStream) data, "UTF-8"));
+                                StringBuilder sb = new StringBuilder();
+                                String line;
+                                while ((line = br.readLine()) != null) {
+                                    sb.append(line);
+                                }
+                                return sb.toString();
+                            }
+                        } catch (Exception e) {
+                            // Ignore and try the next flavor
+                        }
+                    }
+                }
+            } catch (Exception e) {
                 System.out.println(e);
             }
         }
         return null;
     }
+
     
     String loadPrefix() throws IOException {
         String prefix = null;
