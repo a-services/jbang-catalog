@@ -2,6 +2,7 @@
 
 .Catalog of jbang scripts
 |===
+| `ai_note.java`         |  Running OpenAI prompts
 | `README.java`          |  Generate `README.adoc` from `jbang-catalog.json`
 | link:doc/tommy.adoc[tommy.java] |  Tomcat - Create Windows Deployment Scripts
 | `git_changes.java`     |  Copy added/changed files from git to backup folder

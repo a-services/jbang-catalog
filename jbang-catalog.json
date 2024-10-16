@@ -1,110 +1,144 @@
 {
-  "catalogs": {},
-  "aliases": {
-    "grep": {
-      "script-ref": "find_grep.java",
-      "description": "Find substring like grep"
+    "catalogs":
+    {},
+    "aliases":
+    {
+        "grep":
+        {
+            "script-ref": "find_grep.java",
+            "description": "Find substring like grep"
+        },
+        "csv":
+        {
+            "script-ref": "csv_from_db.java",
+            "description": "Export CSV file from database table"
+        },
+        "images2pdf":
+        {
+            "script-ref": "images2pdf.java",
+            "description": "Create PDF from images"
+        },
+        "strapdownjs":
+        {
+            "script-ref": "strapdownjs.java",
+            "description": "Create HTML from markdown using strapdownjs"
+        },
+        "folder_sizes":
+        {
+            "script-ref": "folder_sizes.java",
+            "description": "Read and write CSV with folder sizes"
+        },
+        "find_cordova":
+        {
+            "script-ref": "find_cordova.java",
+            "description": "Search Cordova 8.x docs"
+        },
+        "paste_log":
+        {
+            "script-ref": "paste_log.java",
+            "description": "Paste log from clipboard to file"
+        },
+        "ts_imports":
+        {
+            "script-ref": "ts_imports.java",
+            "description": "Find list of TypeScript imports in folder"
+        },
+        "exc":
+        {
+            "script-ref": "exc.java",
+            "description": "Checking for exceptions in log file"
+        },
+        "yml_table":
+        {
+            "script-ref": "yml_table.java",
+            "description": "Convert YAML list to HTML"
+        },
+        "calibre_page":
+        {
+            "script-ref": "calibre_page.java",
+            "description": "Extract page from HTML created by Calibre"
+        },
+        "fix_chapters":
+        {
+            "script-ref": "fix_chapters.java",
+            "description": "Fix numbers in markdown chapters"
+        },
+        "svg_icons":
+        {
+            "script-ref": "svg_icons.java",
+            "description": "Create set of png icons from svg file"
+        },
+        "har2postman":
+        {
+            "script-ref": "har2postman.java",
+            "description": "Convert HAR file with HTTP requests exported from Chrome to Postman collection"
+        },
+        "file_index":
+        {
+            "script-ref": "file_index.java",
+            "description": "Generate index of files for current folder"
+        },
+        "p_stats":
+        {
+            "script-ref": "p_stats.java",
+            "description": "Calculate project stats"
+        },
+        "extract_html_headers":
+        {
+            "script-ref": "extract_html_headers.java",
+            "description": "Extract header tags from html file as indented text to create table of contents"
+        },
+        "bookserver":
+        {
+            "script-ref": "bookserver.java",
+            "description": "HTTP server that serves markdown files from folder which name ends with ` Book`"
+        },
+        "udemy_html_toc":
+        {
+            "script-ref": "udemy_html_toc.java",
+            "description": "Parse html file with Udemy course TOC"
+        },
+        "remove_html":
+        {
+            "script-ref": "remove_html.java",
+            "description": "Remove html tags from markdown file"
+        },
+        "replace_br":
+        {
+            "script-ref": "replace_br.java",
+            "description": "Replace <br> tags with newlines"
+        },
+        "cmp_tstamps":
+        {
+            "script-ref": "cmp_tstamps.java",
+            "description": "Compare timestamps in two folders"
+        },
+        "obsidian_folder":
+        {
+            "script-ref": "obsidian_folder.java",
+            "description": "Convert Obsidian folder to HTML"
+        },
+        "git_changes":
+        {
+            "script-ref": "git_changes.java",
+            "description": "Copy added/changed files from git to backup folder"
+        },
+        "tommy":
+        {
+            "script-ref": "tommy.java",
+            "description": "Tomcat - Create Windows Deployment Scripts"
+        },
+        "README":
+        {
+            "script-ref": "README.java",
+            "description": "Generate `README.adoc` from `jbang-catalog.json`"
+        },
+        "ai_note":
+        {
+            "script-ref": "ai_note.java",
+            "description": "Running OpenAI prompts"
+        }
     },
-    "csv": {
-      "script-ref": "csv_from_db.java",
-      "description": "Export CSV file from database table"
-    },
-    "images2pdf": {
-      "script-ref": "images2pdf.java",
-      "description": "Create PDF from images"
-    },
-    "strapdownjs": {
-      "script-ref": "strapdownjs.java",
-      "description": "Create HTML from markdown using strapdownjs"    
-    },
-    "folder_sizes": {
-      "script-ref": "folder_sizes.java",
-      "description": "Read and write CSV with folder sizes"    
-	  },
-    "find_cordova": {
-      "script-ref": "find_cordova.java",
-      "description": "Search Cordova 8.x docs"    
-    },
-    "paste_log": {
-      "script-ref": "paste_log.java",
-      "description": "Paste log from clipboard to file"    
-    },
-    "ts_imports": {
-      "script-ref": "ts_imports.java",
-      "description": "Find list of TypeScript imports in folder"    
-    },
-    "exc": {
-      "script-ref": "exc.java",
-      "description": "Checking for exceptions in log file"    
-    },
-    "yml_table": {
-      "script-ref": "yml_table.java",
-      "description": "Convert YAML list to HTML"    
-    },    
-    "calibre_page": {
-      "script-ref": "calibre_page.java",
-      "description": "Extract page from HTML created by Calibre"    
-    },
-    "fix_chapters": {
-      "script-ref": "fix_chapters.java",
-      "description": "Fix numbers in markdown chapters"
-    },
-    "svg_icons": {
-      "script-ref": "svg_icons.java",
-      "description": "Create set of png icons from svg file"
-    },
-    "har2postman": {
-      "script-ref": "har2postman.java",
-      "description": "Convert HAR file with HTTP requests exported from Chrome to Postman collection"
-    },
-    "file_index": {
-      "script-ref": "file_index.java",
-      "description": "Generate index of files for current folder"
-    },
-    "p_stats": {
-      "script-ref": "p_stats.java",
-      "description": "Calculate project stats"
-    },
-    "extract_html_headers": {
-      "script-ref": "extract_html_headers.java",
-      "description": "Extract header tags from html file as indented text to create table of contents"
-    },
-    "bookserver": {
-      "script-ref": "bookserver.java",
-      "description": "HTTP server that serves markdown files from folder which name ends with ` Book`"
-    },
-    "udemy_html_toc": {
-      "script-ref": "udemy_html_toc.java",
-      "description": "Parse html file with Udemy course TOC"
-    },
-    "remove_html": {
-      "script-ref": "remove_html.java",
-      "description": "Remove html tags from markdown file"
-    },
-    "replace_br": {
-      "script-ref": "replace_br.java",
-      "description": "Replace <br> tags with newlines"
-    },
-    "cmp_tstamps": {
-      "script-ref": "cmp_tstamps.java",
-      "description": "Compare timestamps in two folders"
-    },
-    "obsidian_folder": {
-      "script-ref": "obsidian_folder.java",
-      "description": "Convert Obsidian folder to HTML"
-    },
-    "git_changes": {
-      "script-ref": "git_changes.java",
-      "description": "Copy added/changed files from git to backup folder"
-    },
-    "tommy": {
-      "script-ref": "tommy.java",
-      "description": "Tomcat - Create Windows Deployment Scripts"
-    },
-    "README": {
-      "script-ref": "README.java",
-      "description": "Generate `README.adoc` from `jbang-catalog.json`"
-    }
-},
-  "templates": {}
+    "templates":
+    {}
 }
