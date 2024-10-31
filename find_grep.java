@@ -1,5 +1,5 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS info.picocli:picocli:4.7.5
+//DEPS info.picocli:picocli:4.7.6
 
 
 import picocli.CommandLine;
@@ -32,11 +32,18 @@ class find_grep implements Callable<Integer> {
     @Option(names = {"-o", "--out"}, description = "Output file")
     private String outFile;
 
+    @Option(names = {"-m", "--mask"}, description = "File mask")
+    private String fileMask;
+    
+    @Option(names = {"-d", "--depth"}, description = "Max search depth", defaultValue = "2147483647") // Integer.MAX_VALUE
+    private int maxDepth;
+    
     @Option(names = {"-n", "--file-names"}, description = "Print file names to output file")
     private Boolean printFileNames;
 
     int fileCount;
     int count;
+    int depth;
     PrintWriter pw;
     
     public static void main(String... args) {
@@ -57,6 +64,8 @@ class find_grep implements Callable<Integer> {
 
         fileCount = 0;
         count = 0;
+        depth = -1; // 0 will not scan subfolders
+        
         out.println("Searching \"" + pattern + "\" in " + targetDir);
         processFolder(new File(targetDir));
         out.println("=== " + fileCount + " files scanned, found " + count + " times");
@@ -70,14 +79,26 @@ class find_grep implements Callable<Integer> {
     // Lists and sorts the files in the target directory.
     // Iterates through each file, searching each line for the pattern.
     void processFolder(File targetDir) throws Exception {
+        
         String[] files = targetDir.list();
         Arrays.sort(files);
         String printedFileName = null;
+        
+        depth++;
+        if (depth > maxDepth) {
+            return;
+        }
+        
         for (int i=0; i<files.length; i++) {
             File f = new File(targetDir, files[i]);
             //out.println("--- " + f.getName());
+            
             if (f.isDirectory()) {
                 processFolder(f);
+                continue;
+            }
+            
+            if (fileMask != null && !f.getName().equals(fileMask)) {
                 continue;
             }
             
@@ -90,8 +111,7 @@ class find_grep implements Callable<Integer> {
                     // Converts the pattern to lowercase to make the search case-insensitive.
                     // If the pattern is found, it prints the line to the console and, if specified, to the output file.
                     if (line.toLowerCase().contains(pattern)) {
-
-           
+          
                         if (printFileNames != null && !(f.getName().equals(printedFileName))) {
                             out.println("--- Line " + lineNumber + ": " + f.getPath());
                             printedFileName = f.getPath();
