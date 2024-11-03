@@ -19,7 +19,7 @@ import java.util.concurrent.Callable;
  * Mimics the functionality of the `grep` command, but tailored to search for a specific substring within files in a given directory. 
  * The program is also equipped to output results to a file if desired.
  */
-@Command(name = "find_grep", mixinStandardHelpOptions = true, version = "2024-04-24",
+@Command(name = "find_grep", mixinStandardHelpOptions = true, version = "2024-10-03",
         description = "Find substring like grep")
 class find_grep implements Callable<Integer> {
 
@@ -38,9 +38,12 @@ class find_grep implements Callable<Integer> {
     @Option(names = {"-d", "--depth"}, description = "Max search depth", defaultValue = "2147483647") // Integer.MAX_VALUE
     private int maxDepth;
     
-    @Option(names = {"-n", "--file-names"}, description = "Print file names to output file")
-    private Boolean printFileNames;
-
+    @Option(names = {"-n", "--file-names"}, description = "Print file names to output file", defaultValue = "true")
+    private boolean printFileNames;
+    
+    @Option(names = {"-v", "--verbose"}, description = "Verbose mode")
+    private boolean verbose;
+    
     int fileCount;
     int count;
     int depth;
@@ -85,51 +88,61 @@ class find_grep implements Callable<Integer> {
         String printedFileName = null;
         
         depth++;
-        if (depth > maxDepth) {
-            return;
-        }
-        
-        for (int i=0; i<files.length; i++) {
-            File f = new File(targetDir, files[i]);
-            //out.println("--- " + f.getName());
-            
-            if (f.isDirectory()) {
-                processFolder(f);
-                continue;
+        try {
+            if (depth > maxDepth) {
+                return;
             }
             
-            if (fileMask != null && !f.getName().equals(fileMask)) {
-                continue;
-            }
-            
-            try (Scanner scanner = new Scanner(f)) {
-                int lineNumber = 0;
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    lineNumber++;
-                    
-                    // Converts the pattern to lowercase to make the search case-insensitive.
-                    // If the pattern is found, it prints the line to the console and, if specified, to the output file.
-                    if (line.toLowerCase().contains(pattern)) {
-          
-                        if (printFileNames != null && !(f.getName().equals(printedFileName))) {
-                            out.println("--- Line " + lineNumber + ": " + f.getPath());
-                            printedFileName = f.getPath();
-                        }
+            for (int i=0; i<files.length; i++) {
+                File f = new File(targetDir, files[i]);
+                
+                if (f.isDirectory()) {
+                    processFolder(f);
+                    continue;
+                }
+                
+                if (fileMask != null && !f.getName().equals(fileMask)) {
+                    continue;
+                }
+                
+                if (verbose) {
+                    out.println("[file] " + f.getPath());
+                }
+                
+                fileCount ++; 
+                
+                try (Scanner scanner = new Scanner(f)) {
+                    int lineNumber = 0;
+                    while (scanner.hasNextLine()) {
+                        String line = scanner.nextLine();
+                        lineNumber++;
                         
-                        out.println(line);
-                        count++;
-                        
-                        if (pw != null) {
-                            pw.println("--- " + f.getPath());
-                            pw.println(line);
+                        // Converts the pattern to lowercase to make the search case-insensitive.
+                        // If the pattern is found, it prints the line to the console and, if specified, to the output file.
+                        if (line.toLowerCase().contains(pattern)) {
+              
+                            if (printFileNames && !(f.getName().equals(printedFileName))) {
+                                out.println("--- FILE: " + f.getPath() + " : LINE " + lineNumber);
+                                printedFileName = f.getPath();
+                            }
+                            
+                            out.println("    " + line.trim());
+                            count++;
+                            
+                            if (pw != null) {
+                                pw.println("--- " + f.getPath());
+                                pw.println("    " + line.trim());
+                            }
                         }
-                    }
-                 }
-            } catch (Exception e) {
-                out.println(e.getClass() + ": " + e.getMessage());
-            }
-        }   
-        fileCount += files.length;      
+                     }
+                } catch (Exception e) {
+                    out.println(e.getClass() + ": " + e.getMessage());
+                }
+            }   
+              
+        } finally {
+            depth--;
+        }           
     }
+
 }
