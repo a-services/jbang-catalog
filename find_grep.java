@@ -9,17 +9,19 @@ import picocli.CommandLine.Parameters;
 
 import static java.lang.System.*;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import java.io.*;
+import java.util.*;
+
 import java.util.concurrent.Callable;
 
 /**
  * Mimics the functionality of the `grep` command, but tailored to search for a specific substring within files in a given directory. 
  * The program is also equipped to output results to a file if desired.
  */
-@Command(name = "find_grep", mixinStandardHelpOptions = true, version = "2024-10-03",
+@Command(name = "find_grep", mixinStandardHelpOptions = true, version = "2024-11-04",
         description = "Find substring like grep")
 class find_grep implements Callable<Integer> {
 
@@ -35,6 +37,9 @@ class find_grep implements Callable<Integer> {
     @Option(names = {"-m", "--mask"}, description = "File mask")
     private String fileMask;
     
+    @Option(names = {"-x", "--exclude"}, description = "Exclude list")
+    private String excludeListName;
+    
     @Option(names = {"-d", "--depth"}, description = "Max search depth", defaultValue = "2147483647") // Integer.MAX_VALUE
     private int maxDepth;
     
@@ -44,10 +49,13 @@ class find_grep implements Callable<Integer> {
     @Option(names = {"-v", "--verbose"}, description = "Verbose mode")
     private boolean verbose;
     
+    int excludeCount;
     int fileCount;
     int count;
     int depth;
     PrintWriter pw;
+    
+    Set<String> excludeList = new HashSet<>();
     
     public static void main(String... args) {
         int exitCode = new CommandLine(new find_grep()).execute(args);
@@ -65,13 +73,18 @@ class find_grep implements Callable<Integer> {
             pw = new PrintWriter(outFile);
         }
 
+        if (excludeListName != null) {
+            excludeList = loadLinesIntoSet(excludeListName);
+        }
+        
+        excludeCount = 0;
         fileCount = 0;
         count = 0;
         depth = -1; // 0 will not scan subfolders
         
         out.println("Searching \"" + pattern + "\" in " + targetDir);
         processFolder(new File(targetDir));
-        out.println("=== " + fileCount + " files scanned, found " + count + " times");
+        out.println("=== " + fileCount + " files scanned, " + excludeCount + " excluded. FOUND: " + count + " times");
 
         if (pw != null) {
             pw.close();
@@ -102,6 +115,11 @@ class find_grep implements Callable<Integer> {
                 }
                 
                 if (fileMask != null && !f.getName().equals(fileMask)) {
+                    continue;
+                }
+                
+                if (excludeList.contains(f.getPath())) {
+                    excludeCount++;
                     continue;
                 }
                 
@@ -144,5 +162,12 @@ class find_grep implements Callable<Integer> {
             depth--;
         }           
     }
-
+    
+    static Set<String> loadLinesIntoSet(String filename) throws IOException {
+        Set<String> linesSet = new HashSet<>();
+        Files.lines(Paths.get(filename))
+             .map(String::trim) // Trim each line
+             .forEach(linesSet::add); // Add to the set
+        return linesSet;
+    }
 }
