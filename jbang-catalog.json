@@ -137,6 +137,11 @@
         {
             "script-ref": "ai_note.java",
             "description": "Running OpenAI prompts"
+        },
+        "maven_deps":
+        {
+            "script-ref": "maven_deps.java",
+            "description": "Extract maven dependency tree for each project in current folder"
         }
     },
     "templates":
