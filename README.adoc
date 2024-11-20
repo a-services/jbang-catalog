@@ -2,6 +2,7 @@
 
 .Catalog of jbang scripts
 |===
+| `o_ed.java`            |  Obsidian Web Editor
 | `maven_deps.java`      |  Extract maven dependency tree for each project in current folder
 | `ai_note.java`         |  Running OpenAI prompts
 | `README.java`          |  Generate `README.adoc` from `jbang-catalog.json`

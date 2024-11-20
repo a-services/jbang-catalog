@@ -142,6 +142,11 @@
         {
             "script-ref": "maven_deps.java",
             "description": "Extract maven dependency tree for each project in current folder"
+        },
+        "o_ed":
+        {
+            "script-ref": "o_ed.java",
+            "description": "Obsidian Web Editor"
         }
     },
     "templates":
