@@ -147,6 +147,11 @@
         {
             "script-ref": "o_ed.java",
             "description": "Obsidian Web Editor"
+        },
+        "tree":
+        {
+            "script-ref": "tree.java",
+            "description": "Directory tree in ASCII symbols up to a specified depth"
         }
     },
     "templates":

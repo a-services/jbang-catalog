@@ -2,6 +2,7 @@
 
 .Catalog of jbang scripts
 |===
+| `tree.java`            |  Directory tree in ASCII symbols up to a specified depth
 | `o_ed.java`            |  Obsidian Web Editor
 | `maven_deps.java`      |  Extract maven dependency tree for each project in current folder
 | `ai_note.java`         |  Running OpenAI prompts
