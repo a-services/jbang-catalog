@@ -21,7 +21,7 @@ import java.util.concurrent.Callable;
  * Mimics the functionality of the `grep` command, but tailored to search for a specific substring within files in a given directory. 
  * The program is also equipped to output results to a file if desired.
  */
-@Command(name = "find_grep", mixinStandardHelpOptions = true, version = "2024-11-04",
+@Command(name = "find_grep", mixinStandardHelpOptions = true, version = "2024-12-06",
         description = "Find substring like grep")
 class find_grep implements Callable<Integer> {
 
@@ -37,7 +37,7 @@ class find_grep implements Callable<Integer> {
     @Option(names = {"-m", "--mask"}, description = "File mask")
     private String fileMask;
     
-    @Option(names = {"-x", "--exclude"}, description = "Exclude list")
+    @Option(names = {"-x", "--exclude-file"}, description = "File with paths to exclude")
     private String excludeListName;
     
     @Option(names = {"-d", "--depth"}, description = "Max search depth", defaultValue = "2147483647") // Integer.MAX_VALUE
@@ -108,6 +108,11 @@ class find_grep implements Callable<Integer> {
             
             for (int i=0; i<files.length; i++) {
                 File f = new File(targetDir, files[i]);
+                                
+                if (excludeList.contains(f.getPath())) {
+                    excludeCount++;
+                    continue;
+                }
                 
                 if (f.isDirectory()) {
                     processFolder(f);
@@ -115,11 +120,6 @@ class find_grep implements Callable<Integer> {
                 }
                 
                 if (fileMask != null && !f.getName().equals(fileMask)) {
-                    continue;
-                }
-                
-                if (excludeList.contains(f.getPath())) {
-                    excludeCount++;
                     continue;
                 }
                 

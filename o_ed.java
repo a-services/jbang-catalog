@@ -107,6 +107,7 @@ class o_ed implements Callable<Integer> {
 
                 case "restore":
                     restorePage(req);
+                    initNewestFiles();
                     break;
             }
             return templateEngine.process(pageTemplate(), pageContext());
