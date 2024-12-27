@@ -152,6 +152,11 @@
         {
             "script-ref": "tree.java",
             "description": "Directory tree in ASCII symbols up to a specified depth"
+        },
+        "insert_files":
+        {
+            "script-ref": "insert_files.java",
+            "description": "Replace file names with the contents of the respective files"
         }
     },
     "templates":
