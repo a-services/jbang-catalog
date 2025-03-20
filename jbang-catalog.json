@@ -157,6 +157,11 @@
         {
             "script-ref": "insert_files.java",
             "description": "Replace file names with the contents of the respective files"
+        },
+        "copy_box":
+        {
+            "script-ref": "copy_box.java",
+            "description": "Copy binary file to clipboard or paste it back from clipboard to binary file."
         }
     },
     "templates":
