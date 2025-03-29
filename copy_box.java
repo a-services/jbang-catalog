@@ -1,17 +1,22 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS info.picocli:picocli:4.7.6
 
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Parameters;
-import picocli.CommandLine.Option;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.concurrent.Callable;
 
-import java.util.Base64;
-import java.nio.file.*;
-import java.io.*;
-import java.awt.*;
-import java.awt.datatransfer.*;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 @Command(name = "copy_box", mixinStandardHelpOptions = true, version = "2025-03-20",
         description = "Copy binary file to clipboard or paste it back from clipboard to binary file.")

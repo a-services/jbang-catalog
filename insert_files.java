@@ -1,6 +1,10 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS info.picocli:picocli:4.7.6
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -27,7 +31,7 @@ class insert_files implements Callable<Integer> {
     @Parameters(index = "0", description = "Input file name")
     private String inputFileName;
 
-    @Parameters(index = "1", description = "Output file name")
+    @Parameters(index = "1", description = "Output file name", defaultValue = "")
     private String outputFileName;
 
     private static final Pattern INSERT_PATTERN = Pattern.compile("^:insert:\\s+(.+)$");
@@ -71,8 +75,14 @@ class insert_files implements Callable<Integer> {
             }
         }
 
-        saveStr(outputFileName, sb.toString());
-        System.out.println("File created: " + outputFileName);
+        if (outputFileName.length() > 0) {
+            saveStr(outputFileName, sb.toString());
+            System.out.println("File created: " + outputFileName);
+        } else {
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(new StringSelection(sb.toString()), null);
+            System.out.println("Result copied to clipboard");
+        }
 
         return 0;
     }
