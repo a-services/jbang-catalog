@@ -8,6 +8,7 @@ import java.awt.datatransfer.StringSelection;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -67,7 +68,7 @@ class insert_files implements Callable<Integer> {
                 }
 
                 sb.append("```\n")
-                  .append(Files.readString(toInsert)).append('\n')
+                  .append(Files.readString(toInsert, StandardCharsets.UTF_8)).append('\n')
                   .append("```\n");
             } else {
                 // Print the line as is
