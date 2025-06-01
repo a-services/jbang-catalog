@@ -132,13 +132,42 @@ class o_ed implements Callable<Integer> {
         }       
     }
 
+    /**
+     * Initializes Obsidian vault names by reading the obsidian.json configuration file.
+     * 
+     * This method locates the Obsidian configuration file based on the operating system,
+     * reads the vault information, sorts vaults by timestamp (most recent first), and
+     * extracts vault paths and names for use in the application.
+     * 
+     * <p>The method performs the following operations:
+     * <ul>
+     *   <li>Determines the OS-specific path to obsidian.json configuration file</li>
+     *   <li>Parses the JSON configuration to extract vault information</li>
+     *   <li>Sorts vaults by timestamp in descending order (most recently accessed first)</li>
+     *   <li>Populates {@code obsidianFolders} with full vault paths</li>
+     *   <li>Populates {@code obsidianNames} with vault folder names only</li>
+     *   <li>Sets the first vault as the selected vault if any vaults exist</li>
+     * </ul>
+     * 
+     * <p>Supported operating systems:
+     * <ul>
+     *   <li>Windows: %APPDATA%\obsidian\obsidian.json</li>
+     *   <li>macOS: ~/Library/Application Support/obsidian/obsidian.json</li>
+     * </ul>
+     * 
+     * @throws Exception if the obsidian.json file cannot be read or parsed,
+     *                   or if there are issues accessing the file system
+     */
     void initObsidianNames() {
         try {
             // Get the home directory
             String homeFolder = System.getProperty("user.home");
 
             // Construct the path to the obsidian.json file
-            String obsidianJsonPath = homeFolder + "/Library/Application Support/obsidian/obsidian.json";
+            String os = System.getProperty("os.name").toLowerCase();
+            String obsidianJsonPath = os.contains("win") ?
+                homeFolder + "\\AppData\\Roaming\\obsidian\\obsidian.json" :
+                homeFolder + "/Library/Application Support/obsidian/obsidian.json";
 
             // Read the JSON file
             String jsonContent = Files.readString(Paths.get(obsidianJsonPath));
@@ -176,6 +205,22 @@ class o_ed implements Callable<Integer> {
         }
     }
  
+    /**
+     * Initializes the subfolders list for the selected Obsidian vault.
+     * 
+     * This method retrieves the home directory path for the currently selected Obsidian vault,
+     * scans the directory for subdirectories, and populates the subfolders list. The root
+     * directory is represented by "." and is always added as the first item. The .obsidian
+     * folder is excluded from the list as it contains Obsidian's internal configuration files.
+     * 
+     * @throws Exception if there's an error accessing the file system or if the selected
+     *                   Obsidian vault index is invalid
+     * 
+     * @see #setSelectedSubfolder(String)
+     * @see #obsidianNames
+     * @see #obsidianFolders
+     * @see #subfolders
+     */
     void initFolders() {
         try {
             int k = obsidianNames.indexOf(selectedObsidianName);
@@ -206,6 +251,19 @@ class o_ed implements Callable<Integer> {
         }
     }
     
+    /**
+     * Initializes the newest files list by scanning the selected subfolder within the note home directory.
+     * Retrieves the 5 most recently modified files from the note folder and sets the note name
+     * to the newest file if any files are found.
+     * 
+     * This method performs the following operations:
+     * - Creates a File object for the note folder using noteHome and selectedSubfolder
+     * - Fetches the 5 newest files from the folder
+     * - Logs the number of files found
+     * - Sets the note name to the first (newest) file, or null if no files exist
+     * 
+     * @throws Exception if an error occurs during file operations or folder access
+     */
     void initNewestFiles() {
         try {
             noteFolder = new File(noteHome, selectedSubfolder);
@@ -219,6 +277,15 @@ class o_ed implements Callable<Integer> {
         }
     }
 
+    /**
+     * Initializes the text area by loading note content from a file.
+     * 
+     * If a note name is specified, reads the content from the corresponding file
+     * in the note folder. If no note name is provided, initializes with empty text.
+     * Logs the length of the loaded text for debugging purposes.
+     * 
+     * @throws IOException if an error occurs while reading the file
+     */
     void initTextArea() {
         try {
             if (noteName != null) {
@@ -235,6 +302,16 @@ class o_ed implements Callable<Integer> {
 
     }
 
+    /**
+     * Retrieves the names of the newest files from a directory based on modification time.
+     * Only considers files with a ".md" extension.
+     *
+     * @param dir the directory to search for files
+     * @param numFiles the maximum number of newest files to return
+     * @return a list of file names (without paths) sorted by modification time in descending order,
+     *         limited to the specified number of files
+     * @throws Exception if an error occurs while reading file attributes or accessing the directory
+     */
     List<String> getNewestFiles(File dir, int numFiles) throws Exception {
 
         // Get a list of files in the directory with their full paths and modification times
@@ -265,6 +342,15 @@ class o_ed implements Callable<Integer> {
         return newestFiles;
     }
 
+    /**
+     * Updates the page state based on widget selection changes from the client request.
+     * 
+     * Processes JSON payload containing widget type and selected value, then updates
+     * the corresponding application state based on the widget that was modified.
+     * 
+     * @param req the HTTP request containing JSON body with "widget" and "value" fields
+     * @throws Exception if JSON parsing fails or request body is malformed
+     */
     void updatePage(Request req) throws Exception {
         JSONObject updateJson = new JSONObject(req.body());
         String widget = updateJson.getString("widget");
@@ -308,7 +394,9 @@ class o_ed implements Callable<Integer> {
         if (selectedValue == selectedObsidianName) {
             return;
         }
-        selectedObsidianName = selectedValue;
+        if (selectedValue.length() > 0) {
+            selectedObsidianName = selectedValue;
+        }
 
         status = "Obsidian selected: " + selectedObsidianName;
         log.info(status);
@@ -362,156 +450,149 @@ class o_ed implements Callable<Integer> {
             <!DOCTYPE html>
             <html lang="en">
             <head>
-                <meta charset="UTF-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                <title>Obsidian Web Editor</title>
-                <link
-                href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-                rel="stylesheet"
-                />
-                <style>
-                body {
-                    height: 100vh;
-                    margin: 0;
-                    display: flex;
-                    flex-direction: column;
-                }
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Obsidian Web Editor</title>
+            <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            />
+            <style>
+            body {
+                height: 100vh;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+            }
 
-                #topbar {
-                    flex: 0 0 auto;
-                    padding: 1rem;
-                    background-color: #f8f9fa;
-                    border-bottom: 1px solid #dee2e6;
-                }
+            #topbar {
+                flex: 0 0 auto;
+                padding: 1rem;
+                background-color: #f8f9fa;
+                border-bottom: 1px solid #dee2e6;
+            }
 
-                #content {
-                    flex: 1 1 auto;
-                    padding: 0;
-                }
+            #content {
+                flex: 1 1 auto;
+                padding: 0;
+            }
 
-                textarea {
-                    width: 100%;
-                    height: calc(100vh - 210px);
-                    /* border: none; */
-                    resize: none;
-                    outline: none;
-                    padding: 1rem;
-                }
-                </style>
+            textarea {
+                width: 100%;
+                height: calc(100vh - 210px);
+                /* border: none; */
+                resize: none;
+                outline: none;
+                padding: 1rem;
+            }
+            </style>
             </head>
             <body>
-                <form method="post" action="/post">
-                <!-- Topbar -->
-                <div id="topbar" class="container-fluid">
-                    <div class="row align-items-center">
-                    <div class="col-md-4 mb-2 mb-md-0">
-                        <label for="obsidianDropdown" class="form-label">Obsidian</label>
-                        <select
-                        id="obsidianDropdown"
-                        name="obsidianDropdown"
-                        class="form-select"
-                        th:attr="onchange='notifyServer(\\'obsidianDropdown\\', this.value)'"
-                        >
-                        <option
-                            th:each="obsidianName : ${obsidianNames}"
-                            th:text="${obsidianName}"
-                            th:selected="${obsidianName == selectedObsidianName}"
-                        >
-                            Option
-                        </option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 mb-2 mb-md-0">
-                        <label for="folderDropdown" class="form-label">Folder</label>
-                        <select
-                        id="folderDropdown"
-                        name="folderDropdown"
-                        class="form-select"
-                        th:attr="onchange='notifyServer(\\'folderDropdown\\', this.value)'"
-                        >
-                        <option
-                            th:each="subfolder : ${subfolders}"
-                            th:text="${subfolder}"
-                            th:selected="${subfolder == selectedSubfolder}"
-                        >
-                            Option
-                        </option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 mb-2 mb-md-0">
-                        <label for="pageDropdown" class="form-label">Page</label>
-                        <select
-                        id="pageDropdown"
-                        name="pageDropdown"
-                        class="form-select"
-                        th:attr="onchange='notifyServer(\\'pageDropdown\\', this.value)'"
-                        >
-                        <option
-                            th:each="file : ${newestFiles}"
-                            th:text="${file}"
-                            th:selected="${file == noteName}"
-                        >
-                            Option
-                        </option>
-                        </select>
-                    </div>
-                    </div>
-                    <div class="row align-items-center">
-                    <div class="col-md-8 pt-4">
-                        <div class="alert alert-primary" role="alert" th:text="${status}">
-                        Obsidian Web Editor
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-2 mb-md-0 text-end">
-                        <button
-                        type="submit"
-                        name="action"
-                        value="save"
-                        class="btn btn-outline-primary"
-                        >
-                        Save
-                        </button>
-                        <button
-                        type="submit"
-                        name="action"
-                        value="restore"
-                        class="btn btn-outline-secondary"
-                        >
-                        Restore
-                        </button>
-                    </div>
-                    </div>
+            <form method="post" action="/post">
+            <!-- Topbar -->
+            <div id="topbar" class="container-fluid">
+                <div class="row align-items-center">
+                <div class="col-md-4 mb-2 mb-md-0">
+                <label for="obsidianDropdown" class="form-label">Obsidian</label>
+                <select
+                id="obsidianDropdown"
+                name="obsidianDropdown"
+                class="form-select"
+                th:attr="onchange='notifyServer(\\'obsidianDropdown\\', this.value)'"
+                >
+                <option
+                    th:each="obsidianName : ${obsidianNames}"
+                    th:text="${obsidianName}"
+                    th:selected="${obsidianName == selectedObsidianName}"
+                >
+                    Option
+                </option>
+                </select>
                 </div>
-
-                <!-- Content Area -->
-                <div id="content">
-                    <textarea th:text="${noteText}" name="noteText"></textarea>
+                <div class="col-md-4 mb-2 mb-md-0">
+                <label for="folderDropdown" class="form-label">Folder</label>
+                <select
+                id="folderDropdown"
+                name="folderDropdown"
+                class="form-select"
+                th:attr="onchange='notifyServer(\\'folderDropdown\\', this.value)'"
+                >
+                <option
+                    th:each="subfolder : ${subfolders}"
+                    th:text="${subfolder}"
+                    th:selected="${subfolder == selectedSubfolder}"
+                >
+                    Option
+                </option>
+                </select>
                 </div>
-                </form>
+                <div class="col-md-4 mb-2 mb-md-0">
+                <label for="pageDropdown" class="form-label">Page</label>
+                <select
+                id="pageDropdown"
+                name="pageDropdown"
+                class="form-select"
+                th:attr="onchange='notifyServer(\\'pageDropdown\\', this.value)'"
+                >
+                <option
+                    th:each="file : ${newestFiles}"
+                    th:text="${file}"
+                    th:selected="${file == noteName}"
+                >
+                    Option
+                </option>
+                </select>
+                </div>
+                </div>
+                <div class="row align-items-center">
+                <div class="col-md-8 pt-4">
+                <div class="alert alert-primary" role="alert" th:text="${status}">
+                Obsidian Web Editor
+                </div>
+                </div>
+                <div class="col-md-4 mb-2 mb-md-0 text-end">
+                <button type="submit" name="action" value="save" class="btn btn-outline-primary">
+                    Save
+                </button>
+                <button type="submit" name="action" value="restore" class="btn btn-outline-secondary">
+                    Restore
+                </button>
+                <button class="btn btn-outline-secondary" type="button" onclick="notifyServer('obsidianDropdown', '')">
+                    Refresh
+                </button>                        
+                </div>
+                </div>
+            </div>
 
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-                <script>
-                function notifyServer(widget, selectedValue) {
-                    console.log(
-                    "[notifyServer] widget: " + widget + ", value: " + selectedValue
-                    );
-                    fetch(`/update`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ widget: widget, value: selectedValue }),
-                    })
-                    .then((response) => {
-                        if (response.ok) {
-                        window.location.href = '/';
-                        } else {
-                        console.error("Server error:", response.statusText);
-                        }
-                    })
-                    .catch((error) => console.error("Network error:", error));
+            <!-- Content Area -->
+            <div id="content">
+                <textarea th:text="${noteText}" name="noteText"></textarea>
+            </div>
+            </form>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+            function notifyServer(widget, selectedValue) {
+                console.log(
+                "[notifyServer] widget: " + widget + ", value: " + selectedValue
+                );
+                fetch(`/update`, {
+                method: "PUT",
+                headers: {
+                "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ widget: widget, value: selectedValue }),
+                })
+                .then((response) => {
+                if (response.ok) {
+                window.location.href = '/';
+                } else {
+                console.error("Server error:", response.statusText);
                 }
-                </script>
+                })
+                .catch((error) => console.error("Network error:", error));
+            }
+            </script>
             </body>
             </html>
            """;
