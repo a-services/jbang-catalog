@@ -551,6 +551,7 @@ class o_ed implements Callable<Integer> {
                 </div>
                 </div>
                 <div class="col-md-4 mb-2 mb-md-0 text-end">
+                <div class="small text-muted mb-1">Click Refresh to check for new files</div>
                 <button type="submit" name="action" value="save" class="btn btn-outline-primary">
                     Save
                 </button>
