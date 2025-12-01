@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
+import picocli.CommandLine.Option;
 
 /// Reads an input file, searches for lines matching
 /// ```
@@ -35,7 +36,13 @@ class insert_files implements Callable<Integer> {
     @Parameters(index = "1", description = "Output file name", defaultValue = "")
     private String outputFileName;
 
-    private static final Pattern INSERT_PATTERN = Pattern.compile("^:insert:\\s+(.+)$");
+    @Option(names = { "-o", "--open" }, description = "Open delimiter", defaultValue = "")
+    String openDelimiter;
+
+    @Option(names = { "-c", "--close" }, description = "Close delimiter", defaultValue = "")
+    String closeDelimiter;
+
+    private static final Pattern INSERT_PATTERN = Pattern.compile("^:insert:(\\S*:)?(\\S*:)?\\s+(.+)$");
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new insert_files()).execute(args);
@@ -58,7 +65,9 @@ class insert_files implements Callable<Integer> {
         for (String line : Files.readAllLines(inputFile)) {
             Matcher matcher = INSERT_PATTERN.matcher(line);
             if (matcher.matches()) {
-                String filePath = matcher.group(1).trim();
+                String openDelimiterParam = matcher.group(1);
+                String closeDelimiterParam = matcher.group(2);
+                String filePath = matcher.group(3).trim();
                 Path toInsert = Paths.get(filePath);
 
                 // Check if the file to insert exists
@@ -67,9 +76,12 @@ class insert_files implements Callable<Integer> {
                     return 1;
                 }
 
-                sb.append("```\n")
-                  .append(Files.readString(toInsert, StandardCharsets.UTF_8)).append('\n')
-                  .append("```\n");
+                // Insert the file contents wrapped in code blocks
+                String openDelimiter = openDelimiterParam != null ? openDelimiterParam : this.openDelimiter;
+                String closeDelimiter = closeDelimiterParam != null ? closeDelimiterParam : this.closeDelimiter;
+                sb.append(openDelimiter);
+                sb.append(Files.readString(toInsert, StandardCharsets.UTF_8)).append('\n');
+                sb.append(closeDelimiter);
             } else {
                 // Print the line as is
                 sb.append(line).append('\n');
