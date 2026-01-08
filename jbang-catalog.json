@@ -162,6 +162,11 @@
         {
             "script-ref": "copy_box.java",
             "description": "Copy binary file to clipboard or paste it back from clipboard to binary file."
+        },
+        "grafana_log":
+        {
+            "script-ref": "grafana_log.java",
+            "description": "Extracts JSON 'body' field from the CSV 'Line' column into a .log file."
         }
     },
     "templates":
